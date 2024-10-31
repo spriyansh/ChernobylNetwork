@@ -1,1 +1,1 @@
-# msc_project
+# MSc Project using nextflow
