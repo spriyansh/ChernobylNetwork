@@ -1,9 +1,12 @@
-#! /usr/bin/env nextflow
+#!/usr/bin/env nextflow
 nextflow.enable.dsl = 2
 
-include { FASTQC } from './modules/fastqc/fastqc.nf'
-include { MULTIQC } from './modules/multiqc/multiqc.nf'
+// FastQC & MultiQC Channels
+include { FASTQC as FASTQC_RAW } from './modules/fastqc/fastqc.nf'
+include { FASTQC as FASTQC_FILTERED } from './modules/fastqc/fastqc.nf'
+include { CUTADAPT_QT } from './modules/cutadapt/cutadapt_QT.nf'
 
+// Main Workflow
 workflow {
     sample_info_ch = Channel
         .fromPath(params.seq_metadata)
@@ -16,8 +19,21 @@ workflow {
         tuple(sample_id, [r1, r2])
     }
 
-    reads_ch | FASTQC
+    // Run FASTQC on Raw Data
+    fastqc_raw_ch = reads_ch.map { sample_id, reads ->
+        tuple(sample_id, reads, params.raw_fastQC_dir)
+    }
+        | FASTQC_RAW
 
-    multiqc_input_ch = Channel.fromPath("${params.outdir}/fastqc", type: 'dir')
-    multiqc_input_ch | MULTIQC
+    // Run CUTADAPT for quality and length trimming
+    trimmed_reads_ch = reads_ch.map { sample_id, reads ->
+        tuple(sample_id, reads, params.filtered_fastq_dir)
+    }
+        | CUTADAPT_QT
+
+    // Process filtered reads for FASTQC on Filtered Data
+    fastqc_filtered_ch = trimmed_reads_ch.map { sample_id, r1_filtered, r2_filtered ->
+        tuple(sample_id, [r1_filtered, r2_filtered], params.filtered_fastQC_dir)
+    }
+        | FASTQC_FILTERED
 }

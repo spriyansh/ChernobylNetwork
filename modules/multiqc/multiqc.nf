@@ -1,14 +1,45 @@
+// process MULTIQC {
+//     publishDir "${params.out_dir}/${multiqc_dir}", mode: 'copy'
+
+//     input:
+//     tuple path(fastqc_results_dir), val(multiqc_dir)
+
+//     output:
+//     path "multiqc_report.html"
+
+//     script:
+//     """
+//     multiqc ${params.out_dir}/${fastqc_results_dir} -o ./
+//     """
+// }
+
+// process MULTIQC {
+//     publishDir "${params.out_dir}/${fastqc_results_dir}", mode: 'copy'
+
+//     input:
+//     val fastqc_results_dir
+
+//     output:
+//     path "multiqc_report.html"
+
+//     script:
+//     """
+//     multiqc ${params.out_dir}/${fastqc_results_dir} -o .
+//     """
+// }
+
+
 process MULTIQC {
-    publishDir "${params.outdir}/multiqc", mode: 'copy'
+    publishDir "${params.out_dir}/${fastqc_results_dir}", mode: 'copy'
 
     input:
-    path fastqc_results
+    val fastqc_results_dir
 
     output:
     path "multiqc_report.html"
 
     script:
     """
-    multiqc ${fastqc_results} -o ./
+    multiqc ${params.out_dir}/${fastqc_results_dir} -o ./
     """
 }
