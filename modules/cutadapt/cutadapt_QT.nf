@@ -1,18 +1,17 @@
-// Sample Command cutadapt   --quality-cutoff=20   -m 36   -o filtered_R1.fastq.gz -p filtered_R2.fastq.gz   ../RawSeqDataTest/1-1-1_TAAGGCGA-CTCTCTAT_L001_R1_001.fastq.gz ../RawSeqDataTest/1-1-1_TAAGGCGA-CTCTCTAT_L001_R2_001.fastq.gz
-
 // modules/cutadapt/cutadapt_QT.nf
 process CUTADAPT_QT {
-    tag "${sample_id}"
-    publishDir "${params.out_dir}/${filtered_dir}", mode: 'copy'
+    tag "${sampleid}"
+    publishDir "${params.absolute_path_to_project}/${params.out_dir}/${filtered_dir}", mode: 'copy'
+    conda params.cutadapt_conda_env
 
     input:
-    tuple val(sample_id), path(reads), val(filtered_dir)
+    tuple val(sampleid), path(reads), val(filtered_dir)
 
     output:
-    tuple val(sample_id), path("${sample_id}_R1_filtered.fastq.gz"), path("${sample_id}_R2_filtered.fastq.gz")
+    tuple val(sampleid), path("${sampleid}_R1_filtered.fastq.gz"), path("${sampleid}_R2_filtered.fastq.gz")
 
     script:
     """
-    cutadapt --cores=${task.cpus} --quality-cutoff=${params.filter_cutOff} -m ${params.filter_min_length} -o ${sample_id}_R1_filtered.fastq.gz -p ${sample_id}_R2_filtered.fastq.gz ${reads[0]} ${reads[1]}
+    cutadapt -u ${params.filter_trunc_length} -U ${params.filter_trunc_length} -m ${params.filter_min_length} -M ${params.filter_max_length} -q ${params.filter_quality_cutOff} -o ${sampleid}_R1_filtered.fastq.gz -p ${sampleid}_R2_filtered.fastq.gz ${reads[0]} ${reads[1]}
     """
 }

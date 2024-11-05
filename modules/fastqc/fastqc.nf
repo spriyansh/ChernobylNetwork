@@ -1,11 +1,12 @@
 // modules/fastqc/fastqc.nf
 
 process FASTQC {
-    tag "${sample_id}"
-    publishDir "${params.out_dir}/${fastqc_dir}", mode: 'copy'
+    tag "${sampleid}"
+    publishDir "${params.absolute_path_to_project}/${params.out_dir}/${fastqc_dir}", mode: 'copy'
+    conda params.fastqc_conda_env 
 
     input:
-    tuple val(sample_id), path(reads), val(fastqc_dir)
+    tuple val(sampleid), path(reads), val(fastqc_dir)
 
     output:
     file "*_fastqc.{zip,html}"
