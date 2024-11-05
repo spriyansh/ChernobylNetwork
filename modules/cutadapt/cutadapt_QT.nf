@@ -1,7 +1,7 @@
 // modules/cutadapt/cutadapt_QT.nf
 process CUTADAPT_QT {
     tag "${sampleid}"
-    publishDir "${params.absolute_path_to_project}/${params.out_dir}/${filtered_dir}", mode: 'copy'
+    publishDir "${params.output_dir}/${filtered_dir}", mode: 'move'
     conda params.cutadapt_conda_env
 
     input:

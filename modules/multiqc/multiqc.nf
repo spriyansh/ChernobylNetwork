@@ -10,7 +10,8 @@ process MULTIQC_RAW {
 
     script:
     """
-    multiqc ${params.absolute_path_to_project}/${params.out_dir}/${params.raw_fastQC_dir} -o ./
+    multiqc ${params.output_dir}/${params.raw_fastQC_dir} -o .
+    cp multiqc_report.html ${params.output_dir}/${params.raw_fastQC_dir}/multiqc_report.html
     """
 }
 
@@ -25,6 +26,7 @@ process MULTIQC_FILTERED {
 
     script:
     """
-    multiqc ${params.absolute_path_to_project}/${params.out_dir}/${params.filtered_fastQC_dir} ./
+    multiqc --force ${params.output_dir}/${params.filtered_fastQC_dir} -o .
+    cp multiqc_report.html ${params.output_dir}/${params.filtered_fastQC_dir}/multiqc_report.html
     """
 }

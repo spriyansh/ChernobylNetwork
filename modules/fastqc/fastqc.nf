@@ -2,7 +2,7 @@
 
 process FASTQC {
     tag "${sampleid}"
-    publishDir "${params.absolute_path_to_project}/${params.out_dir}/${fastqc_dir}", mode: 'copy'
+    publishDir "${params.output_dir}/${fastqc_dir}", mode: 'move'
     conda params.fastqc_conda_env 
 
     input:
@@ -13,7 +13,7 @@ process FASTQC {
 
     script:
     """
-    fastqc ${reads[0]} --outdir ./
-    fastqc ${reads[1]} --outdir ./
+    fastqc ${reads[0]}
+    fastqc ${reads[1]}
     """
 }

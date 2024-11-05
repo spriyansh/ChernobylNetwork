@@ -63,8 +63,8 @@ qiime2Metadata <- qiime2Metadata %>%
 abs_path <- "/home/spriyansh29/Projects/Chernobyl_Network_Nextflow/RawSeqData/"
 
 # Add absolute paths to the fastq files
-qiime2Metadata[["forward-absolute-filepath"]] <- paste0(abs_path, qiime2Metadata$ForwardFastqFile)
-qiime2Metadata[["reverse-absolute-filepath"]] <- paste0(abs_path, qiime2Metadata$ReverseFastqFile)
+qiime2Metadata[["r1_absolute"]] <- paste0(abs_path, qiime2Metadata$ForwardFastqFile)
+qiime2Metadata[["r2_absolute"]] <- paste0(abs_path, qiime2Metadata$ReverseFastqFile)
 
 # Write Qiime2 Data
 write.table(qiime2Metadata,
