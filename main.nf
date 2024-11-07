@@ -11,6 +11,7 @@ include { MULTIQC_FILTERED } from './modules/multiqc/multiqc.nf'
 // QIIME2 Processes
 include { QiimeMetadataTabulate } from './modules/qiime2/qiime2.nf'
 include { UPDATE_METADATA_COL as UpdateFilteredReads } from './modules/python/update_metadata.nf'
+include { QiimeImportReads } from './modules/qiime2/qiime2.nf'
 
 // Main Workflow
 workflow {
@@ -44,7 +45,7 @@ workflow {
 
     // Update Metadata
     qiime_metadata_file = file("${params.absolute_path_to_project}/${params.qiime2_metadata}")
-    UpdateFilteredReads(
+    UpdatedQiime2Metadata = UpdateFilteredReads(
         tuple(
             qiime_metadata_file,
             "Qiime2MetadataInput.tsv",
@@ -60,4 +61,10 @@ workflow {
     }
         | FASTQC_FILTERED
     fastqc_filtered_ch.collect() | MULTIQC_FILTERED
+
+    // Create Qiime2Metdata
+    tabulatedMetadata = UpdatedQiime2Metadata.map { metadataFile -> file(metadataFile) } | QiimeMetadataTabulate
+
+    // Import Data
+    UpdatedQiime2Metadata.map { metadataFile -> file(metadataFile) } | QiimeImportReads
 }

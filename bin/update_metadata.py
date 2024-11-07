@@ -23,5 +23,8 @@ df = pd.read_csv(inFile, sep="\t")
 df["forward-absolute-filepath"] = new_path + "/" +df[r1_col].str.replace(r'.*/', '', regex=True).str.replace(r'_', '_filtered_', regex=True)
 df["reverse-absolute-filepath"] = new_path + "/" +df[r2_col].str.replace(r'.*/', '', regex=True).str.replace(r'_', '_filtered_', regex=True)
 
+# Drop Columns
+df = df.drop(columns=[r1_col, r1_col])
+
 # Write 
 df.to_csv(outFile, sep="\t", index=False)

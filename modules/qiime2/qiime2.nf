@@ -1,40 +1,38 @@
 // modules/qiime2/qiime2.nf
 
-
-// Add Column to Metadata
-process QiimeAddMetadataColumns {
+// Tabulate Metadata
+process QiimeMetadataTabulate {
     tag "Qiime2"
-    publishDir "${params.output_dir}/${params.qiime2_main_dir}", mode: 'move'
+    publishDir "${params.output_dir}/${params.qiime2_QVZ_dir}", mode: 'copy'
     conda params.qiime2_conda_env
 
     input:
-    path qiime_metadata_file
+    file qiime_metadata_file
 
     output:
-    path "qiime2_metadata_input.txt"
+    file "metadata.qzv"
 
     script:
     """
-    mkdir -p ${params.output_dir}/${params.qiime2_main_dir}
     qiime metadata tabulate --m-input-file ${qiime_metadata_file} --o-visualization metadata.qzv
     """
 }
 
 // Tabulate Metadata
-process QiimeMetadataTabulate {
+process QiimeImportReads {
     tag "Qiime2"
-    publishDir "${params.output_dir}/${params.qiime2_QVZ_dir}", mode: 'move'
+    publishDir "${params.output_dir}/${params.qiime2_QZA_dir}", mode: 'copy'
     conda params.qiime2_conda_env
 
     input:
-    path qiime_metadata_file
+    file qiime_metadata_file
 
     output:
-    path "metadata.qzv"
+    tuple file("demux-paired-end.qza"), file("demux-summary.qzv")
 
     script:
     """
-    mkdir -p ${params.output_dir}/${params.qiime2_QVZ_dir}
-    qiime metadata tabulate --m-input-file ${qiime_metadata_file} --o-visualization metadata.qzv
+    qiime tools import --type 'SampleData[PairedEndSequencesWithQuality]' --input-path ${qiime_metadata_file} --input-format PairedEndFastqManifestPhred33V2 --output-path demux-paired-end.qza
+    qiime demux summarize --i-data demux-paired-end.qza --o-visualization demux-summary.qzv
     """
 }
