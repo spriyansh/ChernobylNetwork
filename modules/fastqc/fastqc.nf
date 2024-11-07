@@ -2,7 +2,7 @@
 
 process FASTQC {
     tag "${sampleid}"
-    publishDir "${params.output_dir}/${fastqc_dir}", mode: 'move'
+    publishDir "${params.output_dir}/${fastqc_dir}", mode: 'copy'
     conda params.fastqc_conda_env 
 
     input:
