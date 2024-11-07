@@ -7,6 +7,7 @@ include { FASTQC as FASTQC_FILTERED } from './modules/fastqc/fastqc.nf'
 include { CUTADAPT_QT } from './modules/cutadapt/cutadapt_QT.nf'
 include { MULTIQC_RAW } from './modules/multiqc/multiqc.nf'
 include { MULTIQC_FILTERED } from './modules/multiqc/multiqc.nf'
+include { AWK_ADD_COLUMN } from './modules/awk/awk.nf'
 
 // QIIME2 Processes
 include { QiimeMetadataTabulate } from './modules/qiime2/qiime2.nf'
@@ -39,7 +40,7 @@ workflow {
     }
         | CUTADAPT_QT
 
-    trimmed_reads_ch.subscribe { println("CUTADAPT_QT output: ${it}") }
+    // trimmed_reads_ch.subscribe { println("CUTADAPT_QT output: ${it}") }
 
     //Process filtered reads for FASTQC on Filtered Data
     fastqc_filtered_ch = trimmed_reads_ch.map { sampleid, r1_filtered, r2_filtered ->
@@ -58,5 +59,9 @@ workflow {
     // Metadata tabulation for visualization
 
     qiime_metadata_file = file("${params.absolute_path_to_project}/${params.qiime2_metadata}")
-    QiimeMetadataTabulate(qiime_metadata_file)
+
+    // Update Metadata
+    AWK_ADD_COLUMN(qiime_metadata_file)
+
+    // QiimeMetadataTabulate(qiime_metadata_file)
 }
