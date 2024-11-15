@@ -12,6 +12,10 @@ include { MULTIQC_FILTERED } from './modules/multiqc/multiqc.nf'
 include { QiimeMetadataTabulate } from './modules/qiime2/qiime2.nf'
 include { UPDATE_METADATA_COL as UpdateFilteredReads } from './modules/python/update_metadata.nf'
 include { QiimeImportReads } from './modules/qiime2/qiime2.nf'
+include { Qiime2DeIonize } from './modules/qiime2/qiime2.nf'
+include { FeatureTableSummary } from './modules/qiime2/qiime2.nf'
+include { FeatureTableTabulateSeq } from './modules/qiime2/qiime2.nf'
+include { DeionizeStatTabulate } from './modules/qiime2/qiime2.nf'
 
 // Main Workflow
 workflow {
@@ -66,5 +70,16 @@ workflow {
     tabulatedMetadata = UpdatedQiime2Metadata.map { metadataFile -> file(metadataFile) } | QiimeMetadataTabulate
 
     // Import Data
-    UpdatedQiime2Metadata.map { metadataFile -> file(metadataFile) } | QiimeImportReads
+    QiimeReads_ch = UpdatedQiime2Metadata.map { metadataFile -> file(metadataFile) } | QiimeImportReads
+
+    // Deionize
+    DeIonize_ch = QiimeReads_ch.map { demux_qza, demux_summary ->
+        file(demux_qza)
+    }
+        | Qiime2DeIonize
+
+    // Create Visuals
+    DeIonize_ch.map { table_qza, rep_seqs, deionize_stats -> tuple(table_qza, qiime_metadata_file) } | FeatureTableSummary
+    DeIonize_ch.map { table_qza, rep_seqs, deionize_stats -> file(rep_seqs) } | FeatureTableTabulateSeq
+    DeIonize_ch.map { table_qza, rep_seqs, deionize_stats -> file(deionize_stats) } | DeionizeStatTabulate
 }
