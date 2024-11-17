@@ -106,3 +106,39 @@ process DeionizeStatTabulate {
     qiime metadata tabulate --m-input-file ${denoising_stats_qza} --o-visualization denoising-stats.qzv
     """
 }
+
+// Fit Naive Bayes
+process AssignSequence {
+    tag "Qiime2"
+    publishDir "${params.output_dir}/${params.qiime2_QZA_dir}", mode: 'copy'
+    conda params.qiime2_conda_env
+
+    input:
+    file rep_seq_qza
+
+    output:
+    file "taxonomy.qza"
+
+    script:
+    """
+    qiime feature-classifier classify-sklearn --i-classifier ${params.qimme2_silva_trained_classfier} --i-reads ${rep_seq_qza} --o-classification taxonomy.qza
+    """
+}
+
+// Visualize Taxanomy
+process VisualizeTaxanomy {
+    tag "Qiime2"
+    publishDir "${params.output_dir}/${params.qiime2_QVZ_dir}", mode: 'copy'
+    conda params.qiime2_conda_env
+
+    input:
+    tuple file(table_qza), file(taxa_qza), file(metadata_tsv)
+
+    output:
+    file "taxa-bar-plots.qzv"
+
+    script:
+    """
+    qiime taxa barplot --i-table ${table_qza} --i-taxonomy ${taxa_qza} --m-metadata-file ${metadata_tsv} --o-visualization taxa-bar-plots.qzv
+    """
+}

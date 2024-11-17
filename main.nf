@@ -16,6 +16,16 @@ include { Qiime2DeIonize } from './modules/qiime2/qiime2.nf'
 include { FeatureTableSummary } from './modules/qiime2/qiime2.nf'
 include { FeatureTableTabulateSeq } from './modules/qiime2/qiime2.nf'
 include { DeionizeStatTabulate } from './modules/qiime2/qiime2.nf'
+include { AssignSequence } from './modules/qiime2/qiime2.nf'
+include { VisualizeTaxanomy } from './modules/qiime2/qiime2.nf'
+include { TOOL_EXPORT as FeatureTableExport } from './modules/qiime2/qiime2_exports.nf'
+include { TOOL_EXPORT as RepSeqExport } from './modules/qiime2/qiime2_exports.nf'
+include { BIOM_TSV as FeatureTabToTSV } from './modules/qiime2/qiime2_exports.nf'
+
+// Qiime2 Downstream Analysis
+include { GENERATE_TREE } from './modules/qiime2/phylogeny.nf'
+include { TOOL_EXPORT as RootTreeExport } from './modules/qiime2/qiime2_exports.nf'
+include { TOOL_EXPORT as UnrootTreeExport } from './modules/qiime2/qiime2_exports.nf'
 
 // Main Workflow
 workflow {
@@ -82,4 +92,28 @@ workflow {
     DeIonize_ch.map { table_qza, rep_seqs, deionize_stats -> tuple(table_qza, qiime_metadata_file) } | FeatureTableSummary
     DeIonize_ch.map { table_qza, rep_seqs, deionize_stats -> file(rep_seqs) } | FeatureTableTabulateSeq
     DeIonize_ch.map { table_qza, rep_seqs, deionize_stats -> file(deionize_stats) } | DeionizeStatTabulate
+
+    // Assign Sequence
+    taxonomy_ch = DeIonize_ch.map { table_qza, rep_seqs, deionize_stats -> rep_seqs } | AssignSequence
+
+    taxonomy_ch_collect = taxonomy_ch.collect()
+    viz_tax_input_ch = DeIonize_ch.map { deionize_tuple ->
+        def taxonomy_file = taxonomy_ch_collect.val[0]
+        return deionize_tuple + [taxonomy_file]
+    }
+
+    viz_tax_input_ch.map { table_qza, rep_seqs, deionize_stats, taxon_qza -> tuple(file(table_qza), file(taxon_qza), qiime_metadata_file) } | VisualizeTaxanomy
+
+    // Export feature table to Biom Format
+    feature_tab_biom_ch = DeIonize_ch.map { table_qza, rep_seqs, deionize_stats -> tuple(table_qza, "ASV_Feature_Table") } | FeatureTableExport
+    taxonomy_ch.map { taxa_qza -> tuple(taxa_qza, "Rep_Sequences") } | RepSeqExport
+
+    // Wait for the Feature Table export to biom and wait for the process end
+    feature_table = "${params.output_dir}/${params.qiime2_exports_dir}/ASV_Feature_Table/feature-table.biom"
+    feature_tab_biom_ch.collect().map { result -> file(feature_table) } | FeatureTabToTSV
+
+    // Downstream Analysis
+    phylogenetic_tree_ch = DeIonize_ch.map { table_qza, rep_seqs, deionize_stats -> file(rep_seqs) } | GENERATE_TREE
+    phylogenetic_tree_ch.map { aligned_seqs_qza, masked_seq_qza, unrooted_tree_qza, rooted_tree_qza -> tuple(rooted_tree_qza, "Phylogeney/RootedTree") } | RootTreeExport
+    phylogenetic_tree_ch.map { aligned_seqs_qza, masked_seq_qza, unrooted_tree_qza, rooted_tree_qza -> tuple(unrooted_tree_qza, "Phylogeney/UnrootedTree") } | UnrootTreeExport
 }
