@@ -26,6 +26,8 @@ include { BIOM_TSV as FeatureTabToTSV } from './modules/qiime2/qiime2_exports.nf
 include { GENERATE_TREE } from './modules/qiime2/phylogeny.nf'
 include { TOOL_EXPORT as RootTreeExport } from './modules/qiime2/qiime2_exports.nf'
 include { TOOL_EXPORT as UnrootTreeExport } from './modules/qiime2/qiime2_exports.nf'
+include { PHYLOGENEY_METRICS } from './modules/qiime2/phylogeny.nf'
+
 
 // Main Workflow
 workflow {
@@ -116,4 +118,17 @@ workflow {
     phylogenetic_tree_ch = DeIonize_ch.map { table_qza, rep_seqs, deionize_stats -> file(rep_seqs) } | GENERATE_TREE
     phylogenetic_tree_ch.map { aligned_seqs_qza, masked_seq_qza, unrooted_tree_qza, rooted_tree_qza -> tuple(rooted_tree_qza, "Phylogeney/RootedTree") } | RootTreeExport
     phylogenetic_tree_ch.map { aligned_seqs_qza, masked_seq_qza, unrooted_tree_qza, rooted_tree_qza -> tuple(unrooted_tree_qza, "Phylogeney/UnrootedTree") } | UnrootTreeExport
+
+
+    // Combine Specific Parts of the chanells
+    DeIonize_ch
+        .combine(phylogenetic_tree_ch)
+        .map { combined_tuple ->
+            def count_tab = combined_tuple[0]
+            def rooted_tree = combined_tuple[6]
+            return [count_tab, rooted_tree]
+        }
+        .set { phylo_metric_input }
+
+    phylo_metric_input.map { count_tab, rooted_tree_qza -> tuple(count_tab, rooted_tree_qza, qiime_metadata_file) } | PHYLOGENEY_METRICS
 }
