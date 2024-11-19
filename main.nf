@@ -27,7 +27,8 @@ include { GENERATE_TREE } from './modules/qiime2/phylogeny.nf'
 include { TOOL_EXPORT as RootTreeExport } from './modules/qiime2/qiime2_exports.nf'
 include { TOOL_EXPORT as UnrootTreeExport } from './modules/qiime2/qiime2_exports.nf'
 include { PHYLOGENEY_METRICS } from './modules/qiime2/phylogeny.nf'
-
+include { ALPHA_DIV } from './modules/qiime2/diversity_inference.nf'
+include { BETA_DIV } from './modules/qiime2/diversity_inference.nf'
 
 // Main Workflow
 workflow {
@@ -70,6 +71,8 @@ workflow {
             "${params.output_dir}/${params.filtered_fastq_dir}"
         )
     )
+    qiime_updated_metadata_file = UpdatedQiime2Metadata.map { metadataFile -> file(metadataFile) }
+    // qiime_updated_metadata_file.view()
 
     //Process filtered reads for FASTQC on Filtered Data
     fastqc_filtered_ch = trimmed_reads_ch.map { sampleid, r1_filtered, r2_filtered ->
@@ -91,7 +94,7 @@ workflow {
         | Qiime2DeIonize
 
     // Create Visuals
-    DeIonize_ch.map { table_qza, rep_seqs, deionize_stats -> tuple(table_qza, qiime_metadata_file) } | FeatureTableSummary
+    DeIonize_ch.map { table_qza, rep_seqs, deionize_stats -> tuple(table_qza, qiime_updated_metadata_file) } | FeatureTableSummary
     DeIonize_ch.map { table_qza, rep_seqs, deionize_stats -> file(rep_seqs) } | FeatureTableTabulateSeq
     DeIonize_ch.map { table_qza, rep_seqs, deionize_stats -> file(deionize_stats) } | DeionizeStatTabulate
 
@@ -104,7 +107,7 @@ workflow {
         return deionize_tuple + [taxonomy_file]
     }
 
-    viz_tax_input_ch.map { table_qza, rep_seqs, deionize_stats, taxon_qza -> tuple(file(table_qza), file(taxon_qza), qiime_metadata_file) } | VisualizeTaxanomy
+    viz_tax_input_ch.map { table_qza, rep_seqs, deionize_stats, taxon_qza -> tuple(file(table_qza), file(taxon_qza), qiime_updated_metadata_file) } | VisualizeTaxanomy
 
     // Export feature table to Biom Format
     feature_tab_biom_ch = DeIonize_ch.map { table_qza, rep_seqs, deionize_stats -> tuple(table_qza, "ASV_Feature_Table") } | FeatureTableExport
@@ -130,5 +133,12 @@ workflow {
         }
         .set { phylo_metric_input }
 
-    phylo_metric_input.map { count_tab, rooted_tree_qza -> tuple(count_tab, rooted_tree_qza, qiime_metadata_file) } | PHYLOGENEY_METRICS
+    // Compute Phylogenetic Metrics
+    phylo_metric_ch = phylo_metric_input.map { count_tab, rooted_tree_qza -> tuple(count_tab, rooted_tree_qza, qiime_updated_metadata_file) } | PHYLOGENEY_METRICS
+
+    // Compute Alpha Diversity
+    faith_pd_vec = "${params.output_dir}/${params.qiime2_downstream_dir}/core-metrics-results/faith_pd_vector.qza"
+    unw_dist_mat = "${params.output_dir}/${params.qiime2_downstream_dir}/core-metrics-results/unweighted_unifrac_distance_matrix.qza"
+    phylo_metric_ch.collect().map { result -> tuple(file(faith_pd_vec), qiime_updated_metadata_file) } | ALPHA_DIV
+    phylo_metric_ch.collect().map { result -> tuple(file(unw_dist_mat), qiime_updated_metadata_file) } | BETA_DIV
 }

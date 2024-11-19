@@ -35,8 +35,6 @@ qiime tools export --input-path QIIME2Data/taxonomy.qza --output-path QIIME2Data
 # Create a rooted phylogenetic tree (necessary for phylogenetic metrics)
 qiime phylogeny align-to-tree-mafft-fasttree --i-sequences QIIME2Data/rep-seqs.qza --o-alignment QIIME2Data/aligned-rep-seqs.qza --o-masked-alignment QIIME2Data/masked-aligned-rep-seqs.qza --o-tree QIIME2Data/unrooted-tree.qza --o-rooted-tree QIIME2Data/rooted-tree.qza
 qiime tools export --input-path QIIME2Data/rooted-tree.qza --output-path QIIME2Data/ExportedData/tree
-
-# Alpha and Beta Diversity Analysis
 qiime diversity core-metrics-phylogenetic --i-phylogeny QIIME2Data/rooted-tree.qza --i-table QIIME2Data/table.qza --p-sampling-depth 10000 --m-metadata-file ProcessedData/Qiime2Metadata.tsv --output-dir QIIME2Data/core-metrics-results
 
 # Alpha Diversity Visualizations
@@ -54,14 +52,8 @@ qiime diversity alpha --i-table QIIME2Data/table.qza --p-metric simpson --o-alph
 # Mantel test
 qiime diversity mantel --i-dm1 QIIME2Data/core-metrics-results/unweighted_unifrac_distance_matrix.qza --i-dm2 QIIME2Data/core-metrics-results/bray_curtis_distance_matrix.qza --o-visualization QIIME2Data/mantel-test.qzv
 
-
 # Pylogenetic 
 qiime emperor plot --i-pcoa QIIME2Data/core-metrics-results/unweighted_unifrac_pcoa_results.qza --m-metadata-file ProcessedData/Qiime2Metadata.tsv --o-visualization QIIME2Data/emperor-pcoa.qzv
-
-
-# Some more phylogeney
-qiime diversity alpha-group-significance --i-alpha-diversity QIIME2Data/core-metrics-results/faith_pd_vector.qza --m-metadata-file ProcessedData/Qiime2Metadata.tsv --o-visualization QIIME2Data/faith-pd-significance.qzv
-
 
 
 # Taxonomic Analysis
@@ -76,9 +68,3 @@ qiime composition ancom --i-table QIIME2Data/comp-filtered-table.qza --m-metadat
 
 # Machine Learning
 qiime sample-classifier classify-samples --i-table QIIME2Data/table.qza --m-metadata-file ProcessedData/Qiime2Metadata.tsv --m-metadata-column Impact --p-estimator KNeighborsClassifier --o-sample-estimator QIIME2Data/random-forest-sample-estimator.qza --o-feature-importance QIIME2Data/feature-importance.qza --o-predictions QIIME2Data/predictions.qza --p-parameter-tuning --o-model-summary QIIME2Data/model-summary.qzv --o-accuracy-results QIIME2Data/accuracy-results.qzv --o-probabilities QIIME2Data/probabilities.qza --o-heatmap QIIME2Data/heatmap.qzv --o-training-targets QIIME2Data/training-targets.qza --o-test-targets QIIME2Data/test-targets.qza
-
-
-# Co-occurance
-qiime feature-table filter-features --i-table QIIME2Data/table.qza --p-min-samples 2 --o-filtered-table QIIME2Data/filtered-cooccurrence-table.qza
-qiime tools export --input-path QIIME2Data/filtered-cooccurrence-table.qza --output-path QIIME2Data/ExportedData/filtered-cooccurrence-table
-biom convert -i QIIME2Data/ExportedData/filtered-cooccurrence-table/feature-table.biom -o QIIME2Data/ExportedData/filtered-cooccurrence-table/filtered-cooccurrence-table.tsv --to-tsv

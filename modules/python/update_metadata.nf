@@ -8,7 +8,7 @@ process UPDATE_METADATA_COL {
     tuple path(metadata_file), val(out_metadata_file), val(r1_col), val(r2_col), val(preceed_string)
 
     output:
-    path "Qiime2MetadataInput.tsv"
+    file "Qiime2MetadataInput.tsv"
 
     script:
     """
