@@ -1,7 +1,6 @@
 // modules/qiime2/qiime2_export.nf
 
 process TOOL_EXPORT {
-    // debug true
     tag "QIIME2-Export"
     publishDir "${params.output_dir}/${params.qiime2_exports_dir}", mode: 'copy'
     conda params.qiime2_conda_env
@@ -18,13 +17,13 @@ process TOOL_EXPORT {
     """
 }
 
-process BIOM_TSV{
+process BIOM_TSV {
     tag "BIOM-Convert"
     publishDir "${params.output_dir}/${params.qiime2_exports_dir}/ASV_Feature_Table/", mode: 'copy'
     conda params.qiime2_conda_env
 
     input:
-    file(biom_file)
+    file biom_file
 
     output:
     file "feature-table.tsv"

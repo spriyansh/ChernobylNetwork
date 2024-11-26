@@ -68,10 +68,21 @@ qiime2Metadata[["r2_absolute"]] <- paste0(abs_path, qiime2Metadata$ReverseFastqF
 
 # Remove certain samples
 qiime2Metadata <- qiime2Metadata %>%
-  filter(!sampleid %in% c(
-    212, 313, 933, 1553, 40191, 41192, 2692, 2173, 432012, 1452, 62262, 44202,
-    47212, 49221, 1863, 50222, 51223, 42193, 1243
-  ))
+  filter(!Impact == "Low")
+
+# Remove Non-Pine Samples with high impact
+qiime2Metadata <- qiime2Metadata[!(qiime2Metadata$Pine_Plantation == "No" & qiime2Metadata$Impact == "High"), ]
+
+# Separate
+High <- qiime2Metadata[qiime2Metadata$Impact == "High", ][c(1:8), ]
+Control <- qiime2Metadata[qiime2Metadata$Impact == "No", ][c(1:8), ]
+
+# Check plutonium
+High <- High[High$Plutonium_BqG > 5, ]
+
+# Rbind
+qiime2Metadata <- rbind(High, Control)
+
 View(qiime2Metadata)
 
 # Write Qiime2 Data

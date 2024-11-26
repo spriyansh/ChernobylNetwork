@@ -1,20 +1,20 @@
 // modules/qiime2/qiime2.nf
 
 // Tabulate Metadata
-process QiimeMetadataTabulate {
+process QiimeTabulate {
     tag "Qiime2"
     publishDir "${params.output_dir}/${params.qiime2_QVZ_dir}", mode: 'copy'
     conda params.qiime2_conda_env
 
     input:
-    file qiime_metadata_file
+    tuple(file(qiime_metadata_file), val(out_file_name))
 
     output:
-    file "metadata.qzv"
+    file "${out_file_name}"
 
     script:
     """
-    qiime metadata tabulate --m-input-file ${qiime_metadata_file} --o-visualization metadata.qzv
+    qiime metadata tabulate --m-input-file ${qiime_metadata_file} --o-visualization ${out_file_name}
     """
 }
 
@@ -38,7 +38,7 @@ process QiimeImportReads {
 }
 
 // Deionize
-process Qiime2DeIonize {
+process Qiime2Denoise {
     tag "Qiime2"
     publishDir "${params.output_dir}/${params.qiime2_QZA_dir}", mode: 'copy'
     conda params.qiime2_conda_env
@@ -87,23 +87,6 @@ process FeatureTableTabulateSeq {
     script:
     """
     qiime feature-table tabulate-seqs --i-data ${rep_seqs_qza} --o-visualization rep-seqs-summary.qzv
-    """
-}
-
-process DeionizeStatTabulate {
-    tag "Qiime2"
-    publishDir "${params.output_dir}/${params.qiime2_QZA_dir}", mode: 'copy'
-    conda params.qiime2_conda_env
-
-    input:
-    file denoising_stats_qza
-
-    output:
-    file "denoising-stats.qzv"
-
-    script:
-    """
-    qiime metadata tabulate --m-input-file ${denoising_stats_qza} --o-visualization denoising-stats.qzv
     """
 }
 

@@ -36,6 +36,6 @@ This project aims to evaluate whether clustering microbiome gene sequences at va
 
 ---
 
-Submitted (2021) as a Master's project to the School of Mathematics, Statistics and Applied Mathematics @University of Galway, Ireland for MSc in Computational Genomics.
+Submitted (2021) to the School of Mathematics, Statistics and Applied Mathematics @University of Galway, Ireland for MSc in Computational Genomics.
 
 ---
