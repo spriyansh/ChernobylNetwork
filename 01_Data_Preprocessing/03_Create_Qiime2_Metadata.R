@@ -94,6 +94,14 @@ write.table(qiime2Metadata,
 
 # Write test
 qiime2Metadata <- qiime2Metadata[c(1:4), ]
+
+# Replace the abosulte paths
+qiime2Metadata$sampleid <- paste0("sub", qiime2Metadata$sampleid)
+qiime2Metadata$ForwardFastqFile <- paste0("sub", qiime2Metadata$ForwardFastqFile)
+qiime2Metadata$ReverseFastqFile <- paste0("sub", qiime2Metadata$ReverseFastqFile)
+qiime2Metadata[["r1_absolute"]] <- paste0(abs_path, qiime2Metadata$ForwardFastqFile)
+qiime2Metadata[["r2_absolute"]] <- paste0(abs_path, qiime2Metadata$ReverseFastqFile)
+
 write.table(qiime2Metadata,
   file = paste(output_path, "Qiime2Metadata_Test.tsv", sep = "/"),
   sep = "\t", row.names = FALSE, quote = FALSE,

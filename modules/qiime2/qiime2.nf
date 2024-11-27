@@ -1,13 +1,13 @@
 // modules/qiime2/qiime2.nf
 
 // Tabulate Metadata
-process QiimeTabulate {
+process Qiime2Tabulate {
     tag "Qiime2"
     publishDir "${params.output_dir}/${params.qiime2_QVZ_dir}", mode: 'copy'
     conda params.qiime2_conda_env
 
     input:
-    tuple(file(qiime_metadata_file), val(out_file_name))
+    tuple file(qiime_metadata_file), val(out_file_name)
 
     output:
     file "${out_file_name}"
@@ -18,8 +18,8 @@ process QiimeTabulate {
     """
 }
 
-// Tabulate Metadata
-process QiimeImportReads {
+// Import Reads
+process Qiime2ImportReads {
     tag "Qiime2"
     publishDir "${params.output_dir}/${params.qiime2_QZA_dir}", mode: 'copy'
     conda params.qiime2_conda_env
@@ -28,18 +28,35 @@ process QiimeImportReads {
     file qiime_metadata_file
 
     output:
-    tuple file("demux-paired-end.qza"), file("demux-summary.qzv")
+    file "demux-paired-end.qza"
 
     script:
     """
     qiime tools import --type 'SampleData[PairedEndSequencesWithQuality]' --input-path ${qiime_metadata_file} --input-format PairedEndFastqManifestPhred33V2 --output-path demux-paired-end.qza
-    qiime demux summarize --i-data demux-paired-end.qza --o-visualization demux-summary.qzv
     """
 }
 
-// Deionize
-process Qiime2Denoise {
+// Visual Summary of QZA
+process Qiime2SummaryToQVZ {
     tag "Qiime2"
+    publishDir "${params.output_dir}/${params.qiime2_QVZ_dir}", mode: 'copy'
+    conda params.qiime2_conda_env
+
+    input:
+    file demux_reads_qza
+
+    output:
+    file "demux-summary.qzv"
+
+    script:
+    """
+    qiime demux summarize --i-data ${demux_reads_qza} --o-visualization demux-summary.qzv
+    """
+}
+
+// Denoize
+process DADA2Denoise {
+    tag "DADA2-ASVs"
     publishDir "${params.output_dir}/${params.qiime2_QZA_dir}", mode: 'copy'
     conda params.qiime2_conda_env
 
@@ -47,81 +64,100 @@ process Qiime2Denoise {
     file demux_qza
 
     output:
-    tuple file("table.qza"), file("rep-seqs.qza"), file("denoising-stats.qza")
+    tuple file("dada2-table.qza"), file("dada2-rep-seqs.qza"), file("dada2-denoising-stats.qza")
 
     script:
     """
-    qiime dada2 denoise-paired --i-demultiplexed-seqs ${demux_qza} --p-trunc-len-f ${params.trunc_length_f} --p-trunc-len-r ${params.trunc_length_r} --o-table table.qza --o-representative-sequences rep-seqs.qza --o-denoising-stats denoising-stats.qza
+    qiime dada2 denoise-paired --i-demultiplexed-seqs ${demux_qza} --p-trunc-len-f ${params.trunc_length_f} --p-trunc-len-r ${params.trunc_length_r} --o-table dada2-table.qza --o-representative-sequences dada2-rep-seqs.qza --o-denoising-stats dada2-denoising-stats.qza
+    """
+}
+
+// Generate OTUs
+process VSearchCluster {
+    tag "VSearch-OTU-97"
+    publishDir "${params.output_dir}/${params.qiime2_QZA_dir}", mode: 'copy'
+    conda params.qiime2_conda_env
+
+    input:
+    tuple file(table_qza), file(rep_seqs_qza)
+
+    output:
+    tuple file("vcluster-open-ref-table.qza"), file("vcluster-open-ref-rep-seqs.qza"), file("vcluster-open-ref-new-seqs.qza")
+
+    script:
+    """
+    qiime vsearch cluster-features-open-reference --i-sequences ${rep_seqs_qza} --i-table ${table_qza} --p-perc-identity 0.97 --i-reference-sequences ${params.qiime2_silva_dna_seq} --o-clustered-table vcluster-open-ref-table.qza --o-clustered-sequences vcluster-open-ref-rep-seqs.qza --o-new-reference-sequences vcluster-open-ref-new-seqs.qza
     """
 }
 
 // Create Visuals for the table
 process FeatureTableSummary {
-    tag "Qiime2"
-    publishDir "${params.output_dir}/${params.qiime2_QZA_dir}", mode: 'copy'
-    conda params.qiime2_conda_env
-
-    input:
-    tuple file(table_qza), file(metadata_tsv)
-
-    output:
-    file "table-summary.qzv"
-
-    script:
-    """
-    qiime feature-table summarize --i-table ${table_qza} --o-visualization table-summary.qzv --m-sample-metadata-file ${metadata_tsv}
-    """
-}
-
-process FeatureTableTabulateSeq {
-    tag "Qiime2"
-    publishDir "${params.output_dir}/${params.qiime2_QZA_dir}", mode: 'copy'
-    conda params.qiime2_conda_env
-
-    input:
-    file rep_seqs_qza
-
-    output:
-    file "rep-seqs-summary.qzv"
-
-    script:
-    """
-    qiime feature-table tabulate-seqs --i-data ${rep_seqs_qza} --o-visualization rep-seqs-summary.qzv
-    """
-}
-
-// Fit Naive Bayes
-process AssignSequence {
-    tag "Qiime2"
-    publishDir "${params.output_dir}/${params.qiime2_QZA_dir}", mode: 'copy'
-    conda params.qiime2_conda_env
-
-    input:
-    file rep_seq_qza
-
-    output:
-    file "taxonomy.qza"
-
-    script:
-    """
-    qiime feature-classifier classify-sklearn --i-classifier ${params.qimme2_silva_trained_classfier} --i-reads ${rep_seq_qza} --o-classification taxonomy.qza
-    """
-}
-
-// Visualize Taxanomy
-process VisualizeTaxanomy {
-    tag "Qiime2"
+    tag "ASV-OTU"
     publishDir "${params.output_dir}/${params.qiime2_QVZ_dir}", mode: 'copy'
     conda params.qiime2_conda_env
 
     input:
-    tuple file(table_qza), file(taxa_qza), file(metadata_tsv)
+    tuple val(identifier), file(table_qza), file(metadata_tsv)
 
     output:
-    file "taxa-bar-plots.qzv"
+    file "${identifier}-table-summary.qzv"
 
     script:
     """
-    qiime taxa barplot --i-table ${table_qza} --i-taxonomy ${taxa_qza} --m-metadata-file ${metadata_tsv} --o-visualization taxa-bar-plots.qzv
+    qiime feature-table summarize --i-table ${table_qza} --o-visualization ${identifier}-table-summary.qzv --m-sample-metadata-file ${metadata_tsv}
+    """
+}
+
+// Rep. Sequence Summary
+process RepSeqTableSummary {
+    tag "ASV-OTU"
+    publishDir "${params.output_dir}/${params.qiime2_QVZ_dir}", mode: 'copy'
+    conda params.qiime2_conda_env
+
+    input:
+    tuple val(identifier), file(rep_seqs_qza)
+
+    output:
+    file "${identifier}-rep-seqs-summary.qzv"
+
+    script:
+    """
+    qiime feature-table tabulate-seqs --i-data ${rep_seqs_qza} --o-visualization ${identifier}-rep-seqs-summary.qzv
+    """
+}
+
+// Fit Naive Bayes
+process AssignSilvaTaxa {
+    tag "ASV-OTU"
+    publishDir "${params.output_dir}/${params.qiime2_QZA_dir}", mode: 'copy'
+    conda params.qiime2_conda_env
+
+    input:
+    tuple val(identifier), file(rep_seq_qza)
+
+    output:
+    file "${identifier}-taxonomy.qza"
+
+    script:
+    """
+    qiime feature-classifier classify-sklearn --i-classifier ${params.qiime2_silva_trained_classfier} --i-reads ${rep_seq_qza} --o-classification ${identifier}-taxonomy.qza
+    """
+}
+
+// Visualize Taxanomy
+process TaxaBars {
+    tag "ASV-OTU"
+    publishDir "${params.output_dir}/${params.qiime2_QVZ_dir}", mode: 'copy'
+    conda params.qiime2_conda_env
+
+    input:
+    tuple val(identifier), file(table_qza), file(metadata_tsv), file(taxa_qza)
+
+    output:
+    file "${identifier}-taxa-bar-plots.qzv"
+
+    script:
+    """
+    qiime taxa barplot --i-table ${table_qza} --i-taxonomy ${taxa_qza} --m-metadata-file ${metadata_tsv} --o-visualization ${identifier}-taxa-bar-plots.qzv
     """
 }

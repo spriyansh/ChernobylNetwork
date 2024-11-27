@@ -15,8 +15,12 @@ qiime feature-table summarize --i-table QIIME2Data/table.qza --o-visualization Q
 qiime feature-table tabulate-seqs --i-data QIIME2Data/rep-seqs.qza --o-visualization QIIME2Data/rep-seqs-summary.qzv
 qiime metadata tabulate --m-input-file QIIME2Data/denoising-stats.qza --o-visualization QIIME2Data/denoising-stats.qzv
 
-# Train with classifier
+# Train with classifier (ASV)
 qiime feature-classifier fit-classifier-naive-bayes --i-reference-reads MicrobialData/SILVA_138/silva-138-99-seqs-515-806.qza --i-reference-taxonomy MicrobialData/SILVA_138/silva-138-99-tax-515-806.qza --o-classifier QIIME2Data/silva-138-99-515-806-classifier.qza
+
+# Prepare for the OTUs
+qiime tools export --input-path MicrobialData_DBs/SILVA_138/silva-138-99-seqs-515-806.qza --output-path MicrobialData_DBs/SILVA_138/silva-138-99-exports
+qiime tools export --input-path MicrobialData_DBs/SILVA_138/silva-138-99-tax-515-806.qza --output-path MicrobialData_DBs/SILVA_138/silva-138-99-exports
 
 # Assign Sequence
 qiime feature-classifier classify-sklearn --i-classifier QIIME2Data/silva-138-99-515-806-classifier.qza --i-reads QIIME2Data/rep-seqs.qza --o-classification QIIME2Data/taxonomy.qza
