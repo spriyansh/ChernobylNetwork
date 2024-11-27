@@ -20,14 +20,10 @@ include { DADA2Denoise } from './modules/qiime2/qiime2.nf'
 include { VSearchCluster } from './modules/qiime2/qiime2.nf'
 
 // Qiime2 Common Workflows Assign Sequence
-include { TOOL_EXPORT as FeatureTableExport } from './modules/qiime2/qiime2_exports.nf'
-include { TOOL_EXPORT as RepSeqExport } from './modules/qiime2/qiime2_exports.nf'
 include { BIOM_TSV as FeatureTabToTSV } from './modules/qiime2/qiime2_exports.nf'
 
 // Qiime2 Downstream Analysis
 include { GENERATE_TREE } from './modules/qiime2/phylogeny.nf'
-include { TOOL_EXPORT as RootTreeExport } from './modules/qiime2/qiime2_exports.nf'
-include { TOOL_EXPORT as UnrootTreeExport } from './modules/qiime2/qiime2_exports.nf'
 include { PHYLOGENEY_METRICS } from './modules/qiime2/phylogeny.nf'
 include { ALPHA_DIV } from './modules/qiime2/diversity_inference.nf'
 include { BETA_DIV } from './modules/qiime2/diversity_inference.nf'
@@ -35,6 +31,7 @@ include { BETA_DIV } from './modules/qiime2/diversity_inference.nf'
 // Call Workflows 
 include { VisualSummary } from './modules/sub_workflows/visual_summary_subflow.nf'
 include { SequenceAssign } from './modules/sub_workflows/assign_silva_taxa_subflow.nf'
+include { ExportData } from './modules/sub_workflows/export_tables_subflow.nf'
 
 // Main Workflow
 workflow {
@@ -121,7 +118,7 @@ workflow {
     VCluster_ch
         .combine(qiime_updated_metadata_ch)
         .set { Qiime2_Cluster_ch }
-    
+
     // Prepare Common Chanels
     asv_chanel = Qiime2Denoise_ch.map { table_qza, repSeq_qza, rm_denoise_stats, metadata ->
         tuple('ASV', table_qza, repSeq_qza, metadata)
@@ -136,5 +133,8 @@ workflow {
     VisualSummary(asv_otu_common_ch)
 
     // AssignTaxa from SilvaDB
-    SequenceAssign(asv_otu_common_ch)
+    asv_otu_tax_common_ch = SequenceAssign(asv_otu_common_ch)
+
+    // Export Data
+    ExportData(asv_otu_tax_common_ch)
 }

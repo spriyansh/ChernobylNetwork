@@ -1,35 +1,35 @@
 // modules/qiime2/qiime2_export.nf
 
-process TOOL_EXPORT {
-    tag "QIIME2-Export"
+process Qiime2Export {
+    tag "ASV-OTU"
     publishDir "${params.output_dir}/${params.qiime2_exports_dir}", mode: 'copy'
     conda params.qiime2_conda_env
 
     input:
-    tuple file(in_file), val(out_folder_name)
+    tuple val(identifier), val(out_folder_name), file(in_file)
 
     output:
-    path "${out_folder_name}"
+    path "${identifier}-${out_folder_name}"
 
     script:
     """
-    qiime tools export --input-path ${in_file} --output-path "${out_folder_name}"
+    qiime tools export --input-path ${in_file} --output-path "${identifier}-${out_folder_name}"
     """
 }
 
 process BIOM_TSV {
-    tag "BIOM-Convert"
-    publishDir "${params.output_dir}/${params.qiime2_exports_dir}/ASV_Feature_Table/", mode: 'copy'
+    tag "ASV-OTU"
+    publishDir "${params.output_dir}/${params.qiime2_exports_dir}/${folder_name}", mode: 'copy'
     conda params.qiime2_conda_env
 
     input:
-    file biom_file
+    path folder_name
 
     output:
     file "feature-table.tsv"
 
     script:
     """
-    biom convert -i ${biom_file} -o feature-table.tsv --to-tsv
+    biom convert -i ${folder_name}/feature-table.biom -o feature-table.tsv --to-tsv
     """
 }

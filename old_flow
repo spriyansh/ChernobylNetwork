@@ -14,6 +14,10 @@
 
     viz_tax_input_ch.map { table_qza, rep_seqs, denoise_stats, metadata, taxon_qza -> tuple(file(table_qza), file(taxon_qza), metadata) } | VisualizeTaxanomy
 
+
+
+
+
     // Export feature table to Biom Format
     feature_tab_biom_ch = DeNoize_ch.map { table_qza, rep_seqs, denoise_stats -> tuple(table_qza, "ASV_Feature_Table") } | FeatureTableExport
     taxonomy_ch.map { taxa_qza -> tuple(taxa_qza, "Rep_Sequences") } | RepSeqExport
@@ -21,6 +25,10 @@
     //     // Wait for the Feature Table export to biom and wait for the process end
     feature_table = "${params.output_dir}/${params.qiime2_exports_dir}/ASV_Feature_Table/feature-table.biom"
     feature_tab_biom_ch.collect().map { result -> file(feature_table) } | FeatureTabToTSV
+
+
+
+
 
     // Downstream Analysis
     phylogenetic_tree_ch = DeNoize_ch.map { table_qza, rep_seqs, denoise_stats -> file(rep_seqs) } | GENERATE_TREE

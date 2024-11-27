@@ -20,4 +20,7 @@ workflow SequenceAssign {
         tuple(identifier, file(table_qza), file(metadata), tax)
     }
         | TaxaBars
+    
+    emit:
+    data_taxa_ch
 }
