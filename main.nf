@@ -23,8 +23,6 @@ include { VSearchCluster } from './modules/qiime2/qiime2.nf'
 include { BIOM_TSV as FeatureTabToTSV } from './modules/qiime2/qiime2_exports.nf'
 
 // Qiime2 Downstream Analysis
-include { GENERATE_TREE } from './modules/qiime2/phylogeny.nf'
-include { PHYLOGENEY_METRICS } from './modules/qiime2/phylogeny.nf'
 include { ALPHA_DIV } from './modules/qiime2/diversity_inference.nf'
 include { BETA_DIV } from './modules/qiime2/diversity_inference.nf'
 
@@ -32,6 +30,7 @@ include { BETA_DIV } from './modules/qiime2/diversity_inference.nf'
 include { VisualSummary } from './modules/sub_workflows/visual_summary_subflow.nf'
 include { SequenceAssign } from './modules/sub_workflows/assign_silva_taxa_subflow.nf'
 include { ExportData } from './modules/sub_workflows/export_tables_subflow.nf'
+include { Phylogeny } from './modules/sub_workflows/compute_phylogeny.nf'
 
 // Main Workflow
 workflow {
@@ -137,4 +136,7 @@ workflow {
 
     // Export Data
     ExportData(asv_otu_tax_common_ch)
+
+    // Compute Phylogeny
+    Phylogeny(asv_otu_tax_common_ch)
 }
