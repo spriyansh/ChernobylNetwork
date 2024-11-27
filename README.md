@@ -42,6 +42,8 @@ This project aims to evaluate whether clustering microbiome gene sequences at va
 
 ### Pipeline
 
+![](rsc/ChernobylNextflow.png)
+
 ### Reproducibility and Usage
 
 
