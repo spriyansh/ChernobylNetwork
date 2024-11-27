@@ -1,4 +1,4 @@
-## Assessing the impact of gene sequence clustering strategies in determining microbe-microbe interactions in environmental microbiome datasets.
+# Assessing the impact of gene sequence clustering strategies in determining microbe-microbe interactions in environmental microbiome datasets.
 
 ### Microbial Co-occurrence Networks
 <p align="justify">
@@ -32,19 +32,51 @@ This project aims to evaluate whether clustering microbiome gene sequences at va
 
 </p>
 
-### Methods/Tech-Stack
-* Python & R
-* Qiime2
-* Nextflow
-* DADA2 (ASVs) and VSearch (OTUs at 97%)
-* Shell Scripting
-* Conda
-
 ### Pipeline
 
 ![](rsc/ChernobylNextflow.png)
 
-### Reproducibility and Usage
+### Usage
+
+**Configure the parameters and paths accordingly. The name of the file is `nextflow.config`.**
+
+Execute the following to run the pipeline from start after.
+
+```bash
+nextflow run main.nf -with-conda --log
+```
+
+**Repository Structure**
+
+```
+Repo
+│   
+├── 01_Data_Preprocessing: Scripts for Generating Qiime2-Metadata.
+│   
+├── 02_ShellScripts: Entire Nextflow pipeline as a shell script.
+│
+│── bin
+│   │── update_metadata.py: Python Script to update metadata columns.
+│
+│── envs: Conda environments
+│   │── *.yml: Cutadapt, FastQC, MultiQC, Pandas.
+│ 
+│── modules: Nextflow modules and sub-workflows
+│   │── cutadapt: Cutadapt Process.
+│   │── fastqc: FastQC Process.
+│   │── multiqc: MultiQC Process.
+│   │── python: Update Metadata Process.
+│   │── qiime2: Qiime2 Common Processes.
+│   │   │── qiime2.nf: Includes Vsearch and DADA2 Processes.
+│   │   │── qiime2_exports.nf: Exports Qiime2 artifacts to TSV & BIOM.
+│   │   │── phylogeny.nf: Compute Trees and Metrics.
+│   │   
+│   │── sub_workflows (Applied to both ASVs and OTUs individually)
+│   │   │── assign_silva_taxa_subflow.nf: Assigning taxanomy.
+│   │   │── compute_phylogeny_subflow.nf: Downstream Phylogeny Analysis.
+│   │   │── export_tables_subflow.nf: Export Data.
+│   │   │── visual_summary_subflow.nf: Generate QVZ files.
+```
 
 
 ### Important References

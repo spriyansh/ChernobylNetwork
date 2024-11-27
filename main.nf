@@ -22,10 +22,6 @@ include { VSearchCluster } from './modules/qiime2/qiime2.nf'
 // Qiime2 Common Workflows Assign Sequence
 include { BIOM_TSV as FeatureTabToTSV } from './modules/qiime2/qiime2_exports.nf'
 
-// Qiime2 Downstream Analysis
-include { ALPHA_DIV } from './modules/qiime2/diversity_inference.nf'
-include { BETA_DIV } from './modules/qiime2/diversity_inference.nf'
-
 // Call Workflows 
 include { VisualSummary } from './modules/sub_workflows/visual_summary_subflow.nf'
 include { SequenceAssign } from './modules/sub_workflows/assign_silva_taxa_subflow.nf'
