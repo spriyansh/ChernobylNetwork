@@ -8,14 +8,14 @@ workflow Phylogeny {
     main:
 
     // Compute Phylogenetic-tree
-    tree_ch = data_ch.map { identifier, table_qza, rep_seqs, metadata, taxa -> tuple(identifier, file(rep_seqs)) } | GenerateTree
-
-    // Merge the tree_ch and data_ch
-    data_ch.merge(tree_ch).set { data_phylo }
+    tree_ch = data_ch.map { taxa, identifier, table_qza, rep_seqs, metadata -> tuple(identifier, file(rep_seqs)) }
+        | GenerateTree
+        | merge(data_ch)
 
     // Compute Phylogenetic Metrics
-    phylo_metric_ch = data_phylo.map { identifier, table_qza, rep_seqs, metadata, taxa, aligned_rep_seqs, masked_align_rep_seqs, unrooted_tree, rooted_tree ->
+    phylo_metric_ch = tree_ch.map { aligned_rep_seqs, masked_align_rep_seqs, unrooted_tree, rooted_tree, taxa, identifier, table_qza, rep_seqs, metadata ->
         tuple(identifier, table_qza, rooted_tree, metadata)
     }
         | PhylogenyMetric
+        | collect
 }

@@ -9,11 +9,11 @@ workflow ExportData {
     main:
 
     // Extract Identifier val
-    def idn = data_ch.map { identifier, table_qza, rep_seqs, metadata, taxa -> identifier }
+    def idn = data_ch.map { taxa, identifier, table_qza, rep_seqs, metadata -> identifier }
 
     // Feature Table to Biom Format
-    feature_tab_ch = data_ch.map { identifier, table_qza, rep_seqs, metadata, taxa -> tuple(identifier, "FeatureTable", table_qza) } | featureExport
-    data_ch.map { identifier, table_qza, rep_seqs, metadata, taxa -> tuple(identifier, "Taxanomy", taxa) } | taxaExport
+    feature_tab_ch = data_ch.map {taxa, identifier, table_qza, rep_seqs, metadata -> tuple(identifier, "FeatureTable", table_qza) } | featureExport
+    data_ch.map {taxa, identifier, table_qza, rep_seqs, metadata -> tuple(identifier, "Taxanomy", taxa) } | taxaExport
 
     // Export TSV
     BIOM_TSV(feature_tab_ch)

@@ -62,28 +62,17 @@ qiime2Metadata <- qiime2Metadata %>%
 # Add absoulte paths
 abs_path <- "/home/spriyansh29/Projects/Chernobyl_Network_Nextflow/RawSeqData/"
 
+
 # Add absolute paths to the fastq files
 qiime2Metadata[["r1_absolute"]] <- paste0(abs_path, qiime2Metadata$ForwardFastqFile)
 qiime2Metadata[["r2_absolute"]] <- paste0(abs_path, qiime2Metadata$ReverseFastqFile)
 
-# Remove certain samples
-qiime2Metadata <- qiime2Metadata %>%
-  filter(!Impact == "Low")
+# Subset
+qiime2Metadata_nopine_low <- qiime2Metadata[(qiime2Metadata$Pine_Plantation == "No" & qiime2Metadata$Impact == "No"), ][c(1:3), ]
+qiime2Metadata_nopine_high <- qiime2Metadata[(qiime2Metadata$Pine_Plantation == "No" & qiime2Metadata$Impact == "High"), ]
 
-# Remove Non-Pine Samples with high impact
-qiime2Metadata <- qiime2Metadata[!(qiime2Metadata$Pine_Plantation == "No" & qiime2Metadata$Impact == "High"), ]
-
-# Separate
-High <- qiime2Metadata[qiime2Metadata$Impact == "High", ][c(1:8), ]
-Control <- qiime2Metadata[qiime2Metadata$Impact == "No", ][c(1:8), ]
-
-# Check plutonium
-High <- High[High$Plutonium_BqG > 5, ]
-
-# Rbind
-qiime2Metadata <- rbind(High, Control)
-
-View(qiime2Metadata)
+# Combine
+qiime2Metadata <- rbind(qiime2Metadata_nopine_low, qiime2Metadata_nopine_high)
 
 # Write Qiime2 Data
 write.table(qiime2Metadata,
@@ -92,6 +81,7 @@ write.table(qiime2Metadata,
   col.names = TRUE
 )
 
+# stop()
 # Write test
 qiime2Metadata <- qiime2Metadata[c(1:4), ]
 
@@ -99,11 +89,24 @@ qiime2Metadata <- qiime2Metadata[c(1:4), ]
 qiime2Metadata$sampleid <- paste0("sub", qiime2Metadata$sampleid)
 qiime2Metadata$ForwardFastqFile <- paste0("sub", qiime2Metadata$ForwardFastqFile)
 qiime2Metadata$ReverseFastqFile <- paste0("sub", qiime2Metadata$ReverseFastqFile)
+
+# Update Path
 qiime2Metadata[["r1_absolute"]] <- paste0(abs_path, qiime2Metadata$ForwardFastqFile)
 qiime2Metadata[["r2_absolute"]] <- paste0(abs_path, qiime2Metadata$ReverseFastqFile)
 
+# Write Qiime2 Metadata
 write.table(qiime2Metadata,
   file = paste(output_path, "Qiime2Metadata_Test.tsv", sep = "/"),
   sep = "\t", row.names = FALSE, quote = FALSE,
   col.names = TRUE
 )
+
+# Write Subsample.sh
+cmd <- paste0(
+  "reformat.sh in1=", str_remove_all(qiime2Metadata$ForwardFastqFile, pattern = "sub"),
+  " in2=", str_remove_all(qiime2Metadata$ReverseFastqFile, pattern = "sub"),
+  " out1=", qiime2Metadata$ForwardFastqFile, " out2=", qiime2Metadata$ReverseFastqFile, " samplerate=0.4"
+)
+
+# Save file
+write(cmd, file = paste(abs_path, "Subsample.sh", sep = "/"))

@@ -32,11 +32,11 @@ This project aims to evaluate whether clustering microbiome gene sequences at va
 
 </p>
 
-### Pipeline
+### Workflow
 
 ![](rsc/ChernobylNextflow.png)
 
-### Usage
+#### Usage
 
 **Configure the parameters and paths accordingly. The name of the file is `nextflow.config`.**
 
@@ -53,7 +53,7 @@ Repo
 │   
 ├── 01_Data_Preprocessing: Scripts for Generating Qiime2-Metadata.
 │   
-├── 02_ShellScripts: Entire Nextflow pipeline as a shell script.
+├── 03_ShellScripts: Entire Nextflow pipeline as a shell script.
 │
 │── bin
 │   │── update_metadata.py: Python Script to update metadata columns.
@@ -76,6 +76,8 @@ Repo
 │   │   │── compute_phylogeny_subflow.nf: Downstream Phylogeny Analysis.
 │   │   │── export_tables_subflow.nf: Export Data.
 │   │   │── visual_summary_subflow.nf: Generate QVZ files.
+│
+│── rsc: Workflow
 ```
 
 

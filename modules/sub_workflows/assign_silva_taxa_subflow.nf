@@ -8,19 +8,19 @@ workflow SequenceAssign {
     main:
 
     // Feature Table Summary
-    taxa_ch = data_ch.map { identifier, table_qza, rep_seqs, metadata ->
+    data_taxa_ch = data_ch.map { identifier, table_qza, rep_seqs, metadata ->
         tuple(identifier, file(rep_seqs))
     }
         | AssignSilvaTaxa
+        | merge(data_ch)
 
-    // Merge outputs
-    data_ch.merge(taxa_ch).set{data_taxa_ch}
-
-    data_taxa_ch.map { identifier, table_qza, rep_seqs, metadata, tax ->
+    // Taxa Bar
+    taxa_bar_ch = data_taxa_ch.map { tax, identifier, table_qza, rep_seqs, metadata ->
         tuple(identifier, file(table_qza), file(metadata), tax)
     }
         | TaxaBars
-    
+        | collect
+
     emit:
     data_taxa_ch
 }
