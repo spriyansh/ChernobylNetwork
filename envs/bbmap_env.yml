@@ -1,0 +1,6 @@
+name: bbmap_env
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - bbmap
