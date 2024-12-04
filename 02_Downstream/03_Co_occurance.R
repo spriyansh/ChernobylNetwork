@@ -1,3 +1,8 @@
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# % Author: Priyansh Srivastava %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Year: 2021 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 # Load necessary libraries
 library(SpiecEasi)
 library(Matrix)
@@ -6,7 +11,7 @@ library(igraph)
 # Step 1: Load and Filter Data
 # Replace 'filtered-cooccurrence-table.tsv' with your exported feature table file path
 feature_table <- read.table("~/Projects/Chernobyl_Network_Nextflow/QIIME2Data/ExportedData/filtered-cooccurrence-table/filtered-cooccurrence-table.tsv",
-                            header = TRUE, row.names = 1, sep = "\t"
+  header = TRUE, row.names = 1, sep = "\t"
 )
 
 # Step 2: Convert Data to Matrix

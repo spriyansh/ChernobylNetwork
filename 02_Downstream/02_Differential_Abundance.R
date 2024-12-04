@@ -1,14 +1,10 @@
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# % Author: Priyansh Srivastava %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Year: 2021 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 library(DESeq2)
 library(phyloseq)
 library(tidyverse)
-
-
-
-
-
-
-
-
 
 physeq <- phyloseq(otu_matrix, metadata_phy)
 
@@ -20,8 +16,8 @@ res <- results(dds)
 res <- res[order(res$padj, na.last = NA), ]
 head(res)
 
-alpha <- 0.05 
-log2fc_threshold <- 0.5 
+alpha <- 0.05
+log2fc_threshold <- 0.5
 sig_taxa <- res %>%
   as.data.frame() %>%
   filter(padj < alpha & abs(log2FoldChange) > log2fc_threshold)
