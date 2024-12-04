@@ -12,6 +12,6 @@ process CUTADAPT_QT {
 
     script:
     """
-    cutadapt -u ${params.filter_trunc_length} -U ${params.filter_trunc_length} -m ${params.filter_min_length} -M ${params.filter_max_length} -q ${params.filter_quality_cutOff} -o ${sampleid}_filtered_R1.fastq.gz -p ${sampleid}_filtered_R2.fastq.gz ${reads[0]} ${reads[1]}
+    cutadapt --trim-n -u ${params.filter_trunc_length} -U ${params.filter_trunc_length} -m ${params.filter_min_length} -M ${params.filter_max_length} -q ${params.filter_quality_cutOff} -o ${sampleid}_filtered_R1.fastq.gz -p ${sampleid}_filtered_R2.fastq.gz ${reads[0]} ${reads[1]}
     """
 }
