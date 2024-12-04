@@ -13,7 +13,7 @@ suppressMessages({
 })
 
 # subSample_percentage
-subSample_percentage <- 0.05
+subSample_percentage <- 1
 
 # Define paths for I/O
 input_path <- "../ProcessedData"

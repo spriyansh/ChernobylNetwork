@@ -27,11 +27,6 @@ This project aims to evaluate whether clustering microbiome gene sequences at va
 16S rRNA gene sequencing, or simply 16S sequencing, utilizes PCR to target and amplify portions of the hypervariable regions (V1-V9) of the bacterial 16S rRNA gene. Amplicons from separate samples are then assigned molecular barcodes, pooled together, and sequenced. Following sequencing, the raw data undergoes processing via a bioinformatics pipeline that includes trimming, error correction, and comparison to a 16S reference database.
 </p>
 
-#### Experimental Design
-<p align="justify">
-
-</p>
-
 ### Workflow
 
 ![](rsc/ChernobylNextflow.png)
