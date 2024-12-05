@@ -33,7 +33,7 @@ workflow {
 
     // Load QIIME2 Metadata-File
     sample_info_ch = Channel
-        .fromPath("${params.absolute_path_to_project}/${params.qiime2_metadata}")
+        .fromPath("${params.qiime2_metadata}")
         .splitCsv(header: true, sep: '\t')
 
     // Extract Columns with absolute path to the indvidual FASTQ-files
@@ -60,7 +60,7 @@ workflow {
         | CUTADAPT_QT
 
     // Update Metadata Columns to point to filtered files
-    qiime_metadata_file = file("${params.absolute_path_to_project}/${params.qiime2_metadata}")
+    qiime_metadata_file = file("${params.qiime2_metadata}")
     UpdatedQiime2Metadata = UpdateFilteredReads(
         tuple(
             qiime_metadata_file,
