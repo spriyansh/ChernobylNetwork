@@ -73,6 +73,7 @@ Repo
 │   │   │── visual_summary_subflow.nf: Generate QVZ files.
 │
 │── rsc: Workflow
+│── aws: user-data script for ec2 instance.
 ```
 
 

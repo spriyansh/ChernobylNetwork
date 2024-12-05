@@ -13,7 +13,7 @@ suppressMessages({
 })
 
 # subSample_percentage
-subSample_percentage <- 1
+subSample_percentage <- 0.1
 
 # Define paths for I/O
 input_path <- "../ProcessedData"
@@ -94,7 +94,7 @@ cmd <- c(paste0("rm -rf ", sub_path), paste0("mkdir -p ", sub_path), paste0(
   " out1=", paste0(sub_path, qiime2Metadata_subset$ForwardFastqFile),
   " out2=", paste0(sub_path, qiime2Metadata_subset$ReverseFastqFile),
   " samplerate=", subSample_percentage
-))
+), paste0("gzip -r ", sub_path))
 
 # Write the command
 write(cmd, file = "01_Data_Preprocessing/Subsample.sh")
