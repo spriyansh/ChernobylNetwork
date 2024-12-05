@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Install Nextflow in EC2
+# Install Nextflow in EC2 on first reboot
 
 # Install SDKMAN
 curl -s "https://get.sdkman.io" | bash

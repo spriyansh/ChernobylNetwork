@@ -4,7 +4,7 @@
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 # Style the Dir
-styler::style_dir()
+#styler::style_dir()
 
 # Load Required Packages
 suppressMessages({
@@ -13,7 +13,7 @@ suppressMessages({
 })
 
 # subSample_percentage
-subSample_percentage <- 0.1
+subSample_percentage <- 0.05
 
 # Define paths for I/O
 input_path <- "../ProcessedData"
@@ -61,17 +61,18 @@ qiime2Metadata <- qiime2Metadata %>%
 
 # Add absoulte paths
 abs_path <- "/home/spriyansh29/Projects/Chernobyl_Network_Nextflow/RawSeqData/"
-sub_path <- "/home/spriyansh29/Projects/Chernobyl_Network_Nextflow/RawSeqDataSub/"
+sub_path <- "/home/spriyansh29/Projects/Chernobyl_Network_Nextflow/RawFQ/"
+s3_path <- "s3://chernobyl-min-12-ten-percent-nf/RawFQ/"
 
 # Add absolute paths to the fastq files
-qiime2Metadata[["r1_absolute"]] <- paste0(sub_path, qiime2Metadata$ForwardFastqFile)
-qiime2Metadata[["r2_absolute"]] <- paste0(sub_path, qiime2Metadata$ReverseFastqFile)
+qiime2Metadata[["r1_absolute"]] <- paste0(s3_path, qiime2Metadata$ForwardFastqFile)
+qiime2Metadata[["r2_absolute"]] <- paste0(s3_path, qiime2Metadata$ReverseFastqFile)
 
 # Subset
-qiime2Metadata_no_impact <- qiime2Metadata[(qiime2Metadata$Pine_Plantation == "No" & qiime2Metadata$Impact == "No"), ][c(1:3), ]
-qiime2Metadata_low_impact <- qiime2Metadata[(qiime2Metadata$Pine_Plantation == "No" & qiime2Metadata$Impact == "Low"), ][c(1:3), ]
-qiime2Metadata_high_impact <- qiime2Metadata[(qiime2Metadata$Pine_Plantation == "No" & qiime2Metadata$Impact == "High"), ][c(1:3), ]
-qiime2Metadata_high_impact_pine <- qiime2Metadata[(qiime2Metadata$Pine_Plantation == "Yes" & qiime2Metadata$Impact == "High"), ][c(1:3), ]
+qiime2Metadata_no_impact <- qiime2Metadata[(qiime2Metadata$Pine_Plantation == "No" & qiime2Metadata$Impact == "No"), ][c(1:1), ]
+qiime2Metadata_low_impact <- qiime2Metadata[(qiime2Metadata$Pine_Plantation == "No" & qiime2Metadata$Impact == "Low"), ][c(1:1), ]
+qiime2Metadata_high_impact <- qiime2Metadata[(qiime2Metadata$Pine_Plantation == "No" & qiime2Metadata$Impact == "High"), ][c(1:2), ]
+qiime2Metadata_high_impact_pine <- qiime2Metadata[(qiime2Metadata$Pine_Plantation == "Yes" & qiime2Metadata$Impact == "High"), ][c(1:2), ]
 
 # Combine
 qiime2Metadata_subset <- rbind(qiime2Metadata_no_impact, qiime2Metadata_low_impact, qiime2Metadata_high_impact, qiime2Metadata_high_impact_pine)
@@ -80,7 +81,7 @@ View(qiime2Metadata_subset)
 
 # Write Qiime2 Data
 write.table(qiime2Metadata_subset,
-  file = paste(output_path, "Qiime2Metadata.tsv", sep = "/"),
+  file = "../Qiime2Metadata.tsv",
   sep = "\t", row.names = FALSE, quote = FALSE,
   col.names = TRUE
 )
