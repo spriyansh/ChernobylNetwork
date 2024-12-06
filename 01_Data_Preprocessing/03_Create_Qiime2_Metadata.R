@@ -63,8 +63,8 @@ sub_path <- "/home/spriyansh29/Projects/Chernobyl_Network_Nextflow/RawFQ/"
 s3_path <- "s3://chernobyl-soil-fq-nf/RawFQ/"
 
 # Add absolute paths to the fastq files
-qiime2Metadata[["r1_absolute"]] <- paste0(s3_path, qiime2Metadata$ForwardFastqFile)
-qiime2Metadata[["r2_absolute"]] <- paste0(s3_path, qiime2Metadata$ReverseFastqFile)
+qiime2Metadata[["forward-absolute-filepath"]] <- paste0(s3_path, qiime2Metadata$ForwardFastqFile)
+qiime2Metadata[["reverse-absolute-filepath"]] <- paste0(s3_path, qiime2Metadata$ReverseFastqFile)
 
 # Subset
 qiime2Metadata_no_impact <- qiime2Metadata[(qiime2Metadata$Pine_Plantation == "No" & qiime2Metadata$Impact == "No"), ][c(1:9), ]

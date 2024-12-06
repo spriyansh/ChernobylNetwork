@@ -35,8 +35,8 @@ workflow {
     // Extract Columns with absolute path to the indvidual FASTQ-files
     raw_reads_ch = sample_info_ch.map { row ->
         def sampleid = row['sampleid']
-        def read1 = file(row['r1_absolute'])
-        def read2 = file(row['r2_absolute'])
+        def read1 = file(row['forward-absolute-filepath'])
+        def read2 = file(row['reverse-absolute-filepath'])
         tuple(sampleid, [read1, read2])
     }
 
