@@ -52,7 +52,7 @@ workflow {
     qiime_metadata_ch = Channel.fromPath(file("${params.qiime2_metadata}"))
 
     // Read
-    qiime_metadata_ch.map(metadata -> file(metadata)) | Qiime2ImportReads
+    Qiime2Reads_ch =qiime_metadata_ch.map(metadata -> file(metadata)) | Qiime2ImportReads
 
     // Summarize
     Qiime2Reads_ch.map { demux_reads_qza -> file(demux_reads_qza) } | Qiime2SummaryToQVZ
