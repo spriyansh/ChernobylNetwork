@@ -90,7 +90,7 @@ workflow {
     UpdatedQiime2Metadata.map { metadataFile -> tuple(file(metadataFile), "metadata.qzv") } | TabulateMetadata
 
     // Import Reads to QZA
-    Qiime2Reads_ch = trimmed_reads_ch | collect(flat: false) | UpdatedQiime2Metadata.map { metadataFile -> file(metadataFile) } | Qiime2ImportReads
+    Qiime2Reads_ch = trimmed_reads_ch | collect | UpdatedQiime2Metadata.map { metadataFile -> file(metadataFile) } | Qiime2ImportReads
 
     // Summarize
     Qiime2Reads_ch.map { demux_reads_qza -> file(demux_reads_qza) } | Qiime2SummaryToQVZ
