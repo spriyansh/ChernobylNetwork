@@ -9,6 +9,7 @@ include { MULTIQC_RAW } from './modules/multiqc/multiqc.nf'
 include { Qiime2Tabulate as TabulateMetadata } from './modules/qiime2/qiime2.nf'
 include { Qiime2ImportReads } from './modules/qiime2/qiime2.nf'
 include { Qiime2SummaryToQVZ } from './modules/qiime2/qiime2.nf'
+include { Qiime2Tabulate as TabulateDenoiseStats } from './modules/qiime2/qiime2.nf'
 
 // Qiime2 ASV and OTUs
 include { DADA2Denoise } from './modules/qiime2/qiime2.nf'
