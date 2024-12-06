@@ -62,7 +62,7 @@ workflow {
 
     // Combine DADA2_Denoised_ch with Metadata file channel
     DADA2_Denoised_ch
-        .combine(qiime_updated_metadata_ch)
+        .combine(qiime_metadata_ch)
         .set { Qiime2Denoise_ch }
 
     // Summarize Denoise Statistics
@@ -73,7 +73,7 @@ workflow {
 
     // Combine with metadata
     VCluster_ch
-        .combine(qiime_updated_metadata_ch)
+        .combine(qiime_metadata_ch)
         .set { Qiime2_Cluster_ch }
 
     // Prepare Common Chanels
