@@ -60,7 +60,7 @@ qiime2Metadata <- qiime2Metadata %>%
 # Add absoulte paths
 abs_path <- "/home/spriyansh29/Projects/Chernobyl_Network_Nextflow/RawSeqData/"
 sub_path <- "/home/spriyansh29/Projects/Chernobyl_Network_Nextflow/RawFQ/"
-s3_path <- "s3://chernobyl-soil-fq-nf/RawFQ/"
+s3_path <- "/home/ec2-user/RawFQ/"
 
 # Add absolute paths to the fastq files
 qiime2Metadata[["forward-absolute-filepath"]] <- paste0(s3_path, qiime2Metadata$ForwardFastqFile)

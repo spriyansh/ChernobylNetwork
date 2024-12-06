@@ -3,7 +3,6 @@ nextflow.enable.dsl = 2
 
 // FastQC & MultiQC Processes
 include { FASTQC } from './modules/fastqc/fastqc.nf'
-include { MULTIQC_RAW } from './modules/multiqc/multiqc.nf'
 
 // QIIME2 Common
 include { Qiime2Tabulate as TabulateMetadata } from './modules/qiime2/qiime2.nf'
@@ -45,9 +44,6 @@ workflow {
         tuple(sampleid, reads, params.raw_fastQC_dir)
     }
         | FASTQC
-
-    // Compile the Multi-QC Reports
-    fastqc_raw_ch.collect() | MULTIQC_RAW
 
     // Update Metadata Columns to point to filtered files
     qiime_metadata_ch = Channel.fromPath(file("${params.qiime2_metadata}"))
