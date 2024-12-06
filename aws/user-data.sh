@@ -9,6 +9,9 @@ source "$SDKMAN_DIR/bin/sdkman-init.sh"
 # Install git 
 yum install -y git
 
+# Install tmux
+yum install -y tmux
+
 # Install Java using SDKMAN
 su - ec2-user -c "curl -s https://get.sdkman.io | bash"
 su - ec2-user -c "source /home/ec2-user/.sdkman/bin/sdkman-init.sh && sdk install java 17.0.10-tem && sdk default java 17.0.10-tem"
