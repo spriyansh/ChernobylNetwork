@@ -87,7 +87,7 @@ workflow {
     fastqc_filtered_ch.collect() | MULTIQC_FILTERED
 
     // Create Qiime2Metadata
-    UpdatedQiime2Metadata.map { metadataFile -> tuple(file(metadataFile), "metadata.qzv") } | TabulateMetadata
+    //UpdatedQiime2Metadata.map { metadataFile -> tuple(file(metadataFile), "metadata.qzv") } | TabulateMetadata
 
     // Combine trimmed reads and metadata, set as tmp_ch
     tmp_ch = trimmed_reads_ch.combine(UpdatedQiime2Metadata)
@@ -99,7 +99,6 @@ workflow {
         file(metadataFile)
     }
         | Qiime2ImportReads
-
 
     // Summarize
     Qiime2Reads_ch.map { demux_reads_qza -> file(demux_reads_qza) } | Qiime2SummaryToQVZ
