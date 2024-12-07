@@ -20,8 +20,8 @@ res <- results(dds)
 res <- res[order(res$padj, na.last = NA), ]
 head(res)
 
-alpha <- 0.05 
-log2fc_threshold <- 0.5 
+alpha <- 0.05
+log2fc_threshold <- 0.5
 sig_taxa <- res %>%
   as.data.frame() %>%
   filter(padj < alpha & abs(log2FoldChange) > log2fc_threshold)

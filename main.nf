@@ -33,7 +33,7 @@ workflow {
 
     // Load QIIME2 Metadata-File
     sample_info_ch = Channel
-        .fromPath("${params.absolute_path_to_project}/${params.qiime2_metadata}")
+        .fromPath("${params.qiime2_metadata}")
         .splitCsv(header: true, sep: '\t')
 
     // Extract Columns with absolute path to the indvidual FASTQ-files
@@ -60,7 +60,7 @@ workflow {
         | CUTADAPT_QT
 
     // Update Metadata Columns to point to filtered files
-    qiime_metadata_file = file("${params.absolute_path_to_project}/${params.qiime2_metadata}")
+    qiime_metadata_file = file("${params.qiime2_metadata}")
     UpdatedQiime2Metadata = UpdateFilteredReads(
         tuple(
             qiime_metadata_file,
@@ -71,12 +71,6 @@ workflow {
         )
     )
 
-    // Catch the updated metadata file
-    qiime_updated_metadata_file = UpdatedQiime2Metadata.map { metadataFile -> file(metadataFile) }
-
-    // Export the file to a chanel
-    qiime_updated_metadata_ch = qiime_updated_metadata_file.collect()
-
     // Run FASTQC on Filtered reads
     fastqc_filtered_ch = trimmed_reads_ch.map { sampleid, r1_filtered, r2_filtered ->
         tuple(sampleid, [r1_filtered, r2_filtered], params.filtered_fastQC_dir)
@@ -84,13 +78,24 @@ workflow {
         | FASTQC_FILTERED
 
     // Compile the Multi-QC Reports
-    fastqc_filtered_ch.collect() | MULTIQC_FILTERED
+    pre_process_ch = fastqc_filtered_ch.collect() | MULTIQC_FILTERED
+
+    // Catch the updated metadata file
+    qiime_updated_metadata_file = UpdatedQiime2Metadata.map { metadataFile -> metadataFile }.collect()
+
+    // Create Metadata Ch
+    qiime_updated_metadata_file
+        .combine(
+            pre_process_ch
+        )
+        .set { tmp }
+    metadata_ch = tmp.map { it.first() }
 
     // Create Qiime2Metadata
-    UpdatedQiime2Metadata.map { metadataFile -> tuple(file(metadataFile), "metadata.qzv") } | TabulateMetadata
+    metadata_ch.map { metadataFile -> tuple(file(metadataFile), "metadata.qzv") } | TabulateMetadata
 
     // Import Reads to QZA
-    Qiime2Reads_ch = UpdatedQiime2Metadata.map { metadataFile -> file(metadataFile) } | Qiime2ImportReads
+    Qiime2Reads_ch = metadata_ch.map { metadataFile -> file(metadataFile) } | Qiime2ImportReads
 
     // Summarize
     Qiime2Reads_ch.map { demux_reads_qza -> file(demux_reads_qza) } | Qiime2SummaryToQVZ
@@ -100,7 +105,7 @@ workflow {
 
     // Combine DADA2_Denoised_ch with Metadata file channel
     DADA2_Denoised_ch
-        .combine(qiime_updated_metadata_ch)
+        .combine(metadata_ch)
         .set { Qiime2Denoise_ch }
 
     // Summarize Denoise Statistics
@@ -111,7 +116,6 @@ workflow {
 
     // Combine with metadata
     VCluster_ch
-        .combine(qiime_updated_metadata_ch)
+        .combine(metadata_ch)
         .set { Qiime2_Cluster_ch }
-
 }
