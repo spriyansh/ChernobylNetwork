@@ -16,7 +16,7 @@ suppressMessages({
 })
 
 # subSample_percentage
-subSample_percentage <- 0.05
+subSample_percentage <- 1
 
 # Define paths for I/O
 input_path <- "../ProcessedData"
@@ -71,10 +71,10 @@ qiime2Metadata[["r1_absolute"]] <- paste0(sub_path, qiime2Metadata$ForwardFastqF
 qiime2Metadata[["r2_absolute"]] <- paste0(sub_path, qiime2Metadata$ReverseFastqFile)
 
 # Subset
-qiime2Metadata_no_impact <- qiime2Metadata[(qiime2Metadata$Pine_Plantation == "No" & qiime2Metadata$Impact == "No"), ][c(1:3), ]
-qiime2Metadata_low_impact <- qiime2Metadata[(qiime2Metadata$Pine_Plantation == "No" & qiime2Metadata$Impact == "Low"), ][c(1:3), ]
+qiime2Metadata_no_impact <- qiime2Metadata[(qiime2Metadata$Pine_Plantation == "No" & qiime2Metadata$Impact == "No"), ][c(1:9), ]
+qiime2Metadata_low_impact <- qiime2Metadata[(qiime2Metadata$Pine_Plantation == "No" & qiime2Metadata$Impact == "Low"), ][c(1:20), ]
 qiime2Metadata_high_impact <- qiime2Metadata[(qiime2Metadata$Pine_Plantation == "No" & qiime2Metadata$Impact == "High"), ][c(1:3), ]
-qiime2Metadata_high_impact_pine <- qiime2Metadata[(qiime2Metadata$Pine_Plantation == "Yes" & qiime2Metadata$Impact == "High"), ][c(1:3), ]
+qiime2Metadata_high_impact_pine <- qiime2Metadata[(qiime2Metadata$Pine_Plantation == "Yes" & qiime2Metadata$Impact == "High"), ][c(1:24), ]
 
 # Combine
 qiime2Metadata_subset <- rbind(qiime2Metadata_no_impact, qiime2Metadata_low_impact, qiime2Metadata_high_impact, qiime2Metadata_high_impact_pine)
