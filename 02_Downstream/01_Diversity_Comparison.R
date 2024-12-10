@@ -1,10 +1,6 @@
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# % Author: Priyansh Srivastava %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# Year: 2021 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-# Style the Dir
-styler::style_dir()
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# % Author: Priyansh Srivastava %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 # Load Required Packages
 suppressPackageStartupMessages({
@@ -15,14 +11,14 @@ suppressPackageStartupMessages({
 })
 
 # Load Metadata
-metadata <- read.table("../ProcessedData/Qiime2Metadata.tsv", header = TRUE, sep = "\t", row.names = 1)
+metadata <- read.table("Qiime2Metadata.tsv", header = TRUE, sep = "\t", row.names = 1)
 metadata_phy <- sample_data(metadata)
 
 # Define paths for I/O (Relative to paths)
-parent <- "../Nextflow_Output/Qiime2Data/Qiime2_Exports"
+parent <- "../Nextflow_Output_AWS/Qiime2Data/Qiime2_Exports"
 
 # Outpath
-outpath <- "../Nextflow_Output/Downstream"
+outpath <- "../Nextflow_Output_Downstream"
 dir.create(outpath, showWarnings = FALSE)
 
 # Taxanomy
@@ -83,42 +79,86 @@ load_convert <- function(tax_abud_list) {
 # lapply
 tax_abud_s3 <- lapply(tax_abud_s3, FUN = load_convert)
 
-# Compute Alpha Diversity Indexs
-alpha_div <- estimate_richness(tax_abud_s3$OTU$physeq, measures = c("Observed", "Shannon", "Simpson", "Chao1"))
-print(alpha_div)
+## Test
+# tax_abud_list <- tax_abud_s3$OTU
 
-alpha_div_long <- alpha_div %>%
-  rownames_to_column(var = "Sample") %>%
-  pivot_longer(
-    cols = c("Observed", "Shannon", "Simpson", "Chao1"),
-    names_to = "Diversity_Index",
-    values_to = "Value"
-  )
+# Compute Diversity Indexes
+compute_diversity_indexes <- function(tax_abud_list) {
+  # Alpha Diversity
+  alpha_div <- estimate_richness(tax_abud_list$physeq, measures = c("Observed", "Shannon", "Simpson", "Chao1"))
 
-# Log-transform (optional) to reduce scale differences
-alpha_div_long$Value <- log10(alpha_div_long$Value + 1)
+  # Convert to long form for plotting
+  alpha_div <- alpha_div %>%
+    rownames_to_column(var = "Sample") %>%
+    pivot_longer(
+      cols = c("Observed", "Shannon", "Simpson", "Chao1"),
+      names_to = "Diversity_Index",
+      values_to = "Value"
+    )
+  # Apply log transformation
+  alpha_div$LogValue <- log10(alpha_div$Value + 1)
 
+  # Plot and Save
+  alpha_indexes_plt <- ggplot(alpha_div, aes(x = Diversity_Index, y = LogValue, fill = Diversity_Index)) +
+    geom_boxplot() +
+    facet_wrap(~Diversity_Index, scales = "free") +
+    theme_minimal() +
+    labs(
+      title = "Alpha Diversity Indexes",
+      x = "Diversity Index",
+      y = "Log10(x+1)"
+    ) +
+    scale_fill_brewer(palette = "Dark2") +
+    theme(legend.position = "none")
 
-ggplot(alpha_div_long, aes(x = Diversity_Index, y = Value, fill = Diversity_Index)) +
-  geom_boxplot() +
-  facet_wrap(~Diversity_Index, scales = "free") + # Separate scales for each index
-  theme_minimal() +
-  labs(
-    title = "Alpha Diversity Indexes (Facet View)",
-    x = "Diversity Index",
-    y = "Log-transformed Value"
-  ) +
-  scale_fill_brewer(palette = "Set3")
+  ## Add to list
+  tax_abud_list$alpha_div <- alpha_div
+  tax_abud_list$alpha_indexes_plt <- alpha_indexes_plt
 
+  ## Calculate Beta Diversity using the Impacted Samples
+  ordination <- ordinate(tax_abud_list$physeq, method = "PCoA", distance = "bray")
+  ord_df <- ordination$vectors[, c(1:2)] %>%
+    as.data.frame() %>%
+    rownames_to_column(var = "sample_id") %>%
+    as_tibble() %>%
+    rename(c1 = Axis.1, c2 = Axis.2)
+  metadata_subset <- metadata %>%
+    select(c("Impact", "Pine_Plantation")) %>%
+    rownames_to_column(var = "sample_id")
+  ord_df <- ord_df %>% inner_join(metadata_subset, by = "sample_id")
 
-# Ordination
-ordination <- ordinate(tax_abud_s3$OTU$physeq, method = "PCoA", distance = "bray")
-plot_ordination(tax_abud_s3$OTU$physeq, ordination, color = "Impact") + geom_point(size = 3)
+  ## Plot
+  beta_indexes_plt <- ggplot(data = ord_df, mapping = aes(x = c1, y = c2, shape = Impact, color = Pine_Plantation)) +
+    geom_point(size = 3.5, alpha = 0.8) +
+    theme_minimal() +
+    labs(title = "Beta Diversity", shape = "Impact", color = "Is Pine Plantation") +
+    scale_color_brewer(palette = "Dark2") +
+    theme(legend.position = "bottom")
 
+  ## Add to list
+  tax_abud_list$beta_div <- ordination
+  tax_abud_list$beta_indexes_plt <- beta_indexes_plt
 
-plot_richness(tax_abud_s3$OTU$physeq, x = "Impact", measures = c("Observed", "Shannon", "Simpson", "Chao1")) +
-  theme_minimal()
+  # Estimating Richness
+  richness_indexes_plt <- plot_richness(tax_abud_list$physeq, x = "Impact", color = "Pine_Plantation", measures = c("Observed", "Shannon", "Simpson", "Chao1")) +
+    theme_minimal() + theme(legend.position = "bottom") + labs(title = "Richness Indexes", color = "Is Pine Plantation?") +
+    scale_color_brewer(palette = "Dark2")
 
-plot_bar(tax_abud_s3$OTU$physeq, fill = "Phylum") + theme_minimal()
+  # Add to list
+  tax_abud_list$richness_indexes_plt <- richness_indexes_plt
+  #
+  # # Compute rarefaction
+  # rarefaction <- rarecurve(t(tax_abud_list$counts), step = 20, col = "seagreen", label = FALSE)
+  #
+  # # Save the plot
+  # tax_abud_list$rarefaction <- rarefaction
 
-rarecurve(t(tax_abud_s3$OTU$counts), step = 20, col = "blue", label = FALSE)
+  return(tax_abud_list)
+}
+
+# Compute
+div_results <- lapply(tax_abud_s3, FUN = compute_diversity_indexes)
+
+# Export Results RDS Object
+dir.create(paste(outpath, "RDS_Objects", sep = "/"), showWarnings = FALSE)
+saveRDS(div_results, file = paste(paste(outpath, "RDS_Objects", sep = "/"), "Diversity_Comparison.RDS", sep = "/"))

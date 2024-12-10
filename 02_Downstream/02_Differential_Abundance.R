@@ -6,11 +6,10 @@ library(DESeq2)
 library(phyloseq)
 library(tidyverse)
 
-physeq <- phyloseq(otu_matrix, metadata_phy)
-
-dds <- phyloseq_to_deseq2(physeq, ~Impact)
-
+dds <- phyloseq_to_deseq2(tax_abud_s3$OTU$physeq, ~ Impact + Pine_Plantation)
 dds <- DESeq(dds)
+
+stop("expected stop")
 res <- results(dds)
 
 res <- res[order(res$padj, na.last = NA), ]

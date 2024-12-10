@@ -13,22 +13,23 @@ library(igraph)
 feature_table <- read.table("~/Projects/Chernobyl_Network_Nextflow/QIIME2Data/ExportedData/filtered-cooccurrence-table/filtered-cooccurrence-table.tsv",
   header = TRUE, row.names = 1, sep = "\t"
 )
-
+feature_table <- tax_abud_s3$OTU$counts
+feature_table <- feature_table[rowSums(feature_table) > 0, ] # Remove zero-sum rows
 # Step 2: Convert Data to Matrix
 # Remove the first column if it's a sample identifier (adjust as necessary)
 feature_matrix <- as.matrix(feature_table)
 
 # Step 3: Run SpiecEasi to Construct the Network
 # Using Meinshausen-Bühlmann (mb) method for network inference
-spiec <- spiec.easi(feature_matrix, method = "mb", nlambda = 50, lambda.min.ratio = 1e-2)
+spiec <- spiec.easi(feature_matrix, method = "mb")
 
 # Step 4: Extract Adjacency Matrix
 # Extract the adjacency matrix from the SpiecEasi object
-adj_matrix <- as.matrix(symBeta(getOptBeta(spiec), mode = "maxabs"))
+adj_matrix <- as.matrix(symBeta(getOptBeta(spiec)))
 
 # Step 5: Create an igraph Object
 # Convert the adjacency matrix to an igraph object
-network <- graph_from_adjacency_matrix(adj_matrix, mode = "undirected", diag = FALSE, weighted = TRUE)
+network <- graph_from_adjacency_matrix(adj_matrix, diag = FALSE, weighted = TRUE)
 
 # Step 6: Optional - Filter Edges by Weight Threshold
 # Set a threshold to remove weaker edges (e.g., edges with weight < 0.3)
