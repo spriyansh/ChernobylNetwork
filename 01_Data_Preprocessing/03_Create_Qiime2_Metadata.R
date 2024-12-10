@@ -8,7 +8,6 @@
 # Load Required Packages
 suppressMessages({
   library(tidyverse)
-  library(ggalluvial)
 })
 
 # subSample_percentage
@@ -27,7 +26,6 @@ sampleMetadata <- read.table(paste(input_path, "CleanSampleMetadata.tsv", sep = 
 seqMetadata <- read.table(paste(input_path, "SeqMetadata.tsv", sep = "/"),
   sep = "\t", header = TRUE,
 ) %>% as_tibble()
-
 
 # Rename columns to match QIIME 2's metadata requirements
 qiime2Metadata <- seqMetadata %>%
@@ -60,11 +58,12 @@ qiime2Metadata <- qiime2Metadata %>%
 
 # Add absoulte paths
 abs_path <- "/home/spriyansh29/Projects/Chernobyl_Network_Nextflow/RawSeqData/"
-sub_path <- "/home/spriyansh29/Projects/Chernobyl_Network_Nextflow/RawSeqDataSub/"
+sub_path <- "/home/spriyansh29/Projects/Chernobyl_Network_Nextflow/RawFQ/"
+s3_path <- "s3://chernobyl-soil-fq-nf/RawFQ/"
 
 # Add absolute paths to the fastq files
-qiime2Metadata[["r1_absolute"]] <- paste0(sub_path, qiime2Metadata$ForwardFastqFile)
-qiime2Metadata[["r2_absolute"]] <- paste0(sub_path, qiime2Metadata$ReverseFastqFile)
+qiime2Metadata[["r1_absolute"]] <- paste0(s3_path, qiime2Metadata$ForwardFastqFile)
+qiime2Metadata[["r2_absolute"]] <- paste0(s3_path, qiime2Metadata$ReverseFastqFile)
 
 # Subset
 qiime2Metadata_no_impact <- qiime2Metadata[(qiime2Metadata$Pine_Plantation == "No" & qiime2Metadata$Impact == "No"), ][c(1:9), ]
@@ -93,7 +92,7 @@ cmd <- c(paste0("rm -rf ", sub_path), paste0("mkdir -p ", sub_path), paste0(
   " out1=", paste0(sub_path, qiime2Metadata_subset$ForwardFastqFile),
   " out2=", paste0(sub_path, qiime2Metadata_subset$ReverseFastqFile),
   " samplerate=", subSample_percentage
-))
+), paste0("gzip -r ", sub_path))
 
 # Write the command
 write(cmd, file = "01_Data_Preprocessing/Subsample.sh")

@@ -27,4 +27,4 @@ df["reverse-absolute-filepath"] = new_path + "/" +df[r2_col].str.replace(r'.*/',
 df = df.drop(columns=[r1_col, r1_col])
 
 # Write 
-df.to_csv(outFile, sep="\t", index=False)
+df.to_csv(outFile, sep="\t", index=False, encoding='utf-8', errors='replace')

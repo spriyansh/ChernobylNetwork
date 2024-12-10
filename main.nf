@@ -94,6 +94,9 @@ workflow {
     // Create Qiime2Metadata
     metadata_ch.map { metadataFile -> tuple(file(metadataFile), "metadata.qzv") } | TabulateMetadata
 
+    // Combine trimmed reads and metadata, set as tmp_ch
+    tmp_ch = trimmed_reads_ch.combine(UpdatedQiime2Metadata)
+
     // Import Reads to QZA
     Qiime2Reads_ch = metadata_ch.map { metadataFile -> file(metadataFile) } | Qiime2ImportReads
 
