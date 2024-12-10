@@ -118,4 +118,27 @@ workflow {
     VCluster_ch
         .combine(metadata_ch)
         .set { Qiime2_Cluster_ch }
+
+    // Following will be computed on AWS visit /aws/nf-memory-run
+    // Prepare Common Chanels
+    asv_chanel = Qiime2Denoise_ch.map { table_qza, repSeq_qza, rm_denoise_stats, metadata ->
+        tuple('ASV', table_qza, repSeq_qza, metadata)
+    }
+    otu_chanel = Qiime2_Cluster_ch.map { table_qza, repSeq_qza, rm_new_seqs, metadata ->
+        tuple('OTU', table_qza, repSeq_qza, metadata)
+    }
+    // Include and Run the Subworkflow
+    asv_otu_common_ch = asv_chanel.concat(otu_chanel)
+
+    // Run Common Workflow for Summarization
+    VisualSummary(asv_otu_common_ch)
+
+    // AssignTaxa from SilvaDB
+    asv_otu_tax_common_ch = SequenceAssign(asv_otu_common_ch)
+
+    // Export Data
+    ExportData(asv_otu_tax_common_ch)
+
+    // Compute Phylogeny
+    Phylogeny(asv_otu_tax_common_ch)
 }
