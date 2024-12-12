@@ -19,6 +19,9 @@ workflow {
     table_otu = Channel.fromPath("${params.bucket}/OTU/vcluster-open-ref-table.qza")
     repseq_otu = Channel.fromPath("${params.bucket}/OTU/vcluster-open-ref-rep-seqs.qza")
 
+    // Download files for Microbial Data
+    S3CopyToLocal(params.qiime2_silva_trained_classfier_s3)
+
     // Combine to make channels
     // ASVs
     asv_chanel = Channel
@@ -40,4 +43,18 @@ workflow {
     // AssignTaxa from SilvaDB
     asv_taxa_ch = asv_chanel | ASV_AssignTaxa
     otu_taxa_ch = otu_chanel | OTU_AssignTaxa
+}
+
+// wget
+process S3CopyToLocal {
+    input:
+    val filename
+
+    output:
+    val filename
+
+    script:
+    """
+    aws s3 cp ${filename} .
+    """
 }
