@@ -23,10 +23,24 @@ include { VSearchCluster } from './modules/qiime2/qiime2.nf'
 include { BIOM_TSV as FeatureTabToTSV } from './modules/qiime2/qiime2_exports.nf'
 
 // Call Workflows 
-include { VisualSummary } from './modules/sub_workflows/visual_summary_subflow.nf'
-include { SequenceAssign } from './modules/sub_workflows/assign_silva_taxa_subflow.nf'
-include { ExportData } from './modules/sub_workflows/export_tables_subflow.nf'
-include { Phylogeny } from './modules/sub_workflows/compute_phylogeny.nf'
+include { VisualSummary as ASV_Summary } from './modules/sub_workflows/visual_summary_subflow.nf'
+include { VisualSummary as OTU_Summary } from './modules/sub_workflows/visual_summary_subflow.nf'
+include { SequenceAssign as ASV_AssignTaxa } from './modules/sub_workflows/assign_silva_taxa_subflow.nf'
+include { SequenceAssign as OTU_AssignTaxa } from './modules/sub_workflows/assign_silva_taxa_subflow.nf'
+include { ExportData as ASV_Export } from './modules/sub_workflows/export_tables_subflow.nf'
+include { ExportData as OTU_Export } from './modules/sub_workflows/export_tables_subflow.nf'
+include { Phylogeny as ASV_Phylogeny } from './modules/sub_workflows/compute_phylogeny.nf'
+include { Phylogeny as OTU_Phylogeny } from './modules/sub_workflows/compute_phylogeny.nf'
+
+// Copy Output to S3 Buckets
+include { CopyLocalToS3Bucket as OTU_S3_Table } from './modules/aws_s3/s3_copy.nf'
+include { CopyLocalToS3Bucket as OTU_S3_RepSeq } from './modules/aws_s3/s3_copy.nf'
+include { CopyLocalToS3Bucket as ASV_S3_Table } from './modules/aws_s3/s3_copy.nf'
+include { CopyLocalToS3Bucket as ASV_S3_RepSeq } from './modules/aws_s3/s3_copy.nf'
+include { CopyLocalToS3Bucket as Qiime2_S3_Metadata } from './modules/aws_s3/s3_copy.nf'
+include { CopyLocalToS3Bucket as Silva_S3_Classifier } from './modules/aws_s3/s3_copy.nf'
+include { CopyLocalToS3Bucket as Silva_S3_Seq } from './modules/aws_s3/s3_copy.nf'
+include { CopyLocalToS3Bucket as Silva_S3_Taxanomy } from './modules/aws_s3/s3_copy.nf'
 
 // Main Workflow
 workflow {
@@ -122,7 +136,6 @@ workflow {
         .combine(metadata_ch)
         .set { Qiime2_Cluster_ch }
 
-    // Following will be computed on AWS visit /aws/nf-memory-run
     // Prepare Common Chanels
     asv_chanel = Qiime2Denoise_ch.map { table_qza, repSeq_qza, rm_denoise_stats, metadata ->
         tuple('ASV', table_qza, repSeq_qza, metadata)
@@ -130,18 +143,35 @@ workflow {
     otu_chanel = Qiime2_Cluster_ch.map { table_qza, repSeq_qza, rm_new_seqs, metadata ->
         tuple('OTU', table_qza, repSeq_qza, metadata)
     }
-    // Include and Run the Subworkflow
-    asv_otu_common_ch = asv_chanel.concat(otu_chanel)
 
-    // Run Common Workflow for Summarization
-    VisualSummary(asv_otu_common_ch)
+    // Generate Visual Summaries
+    asv_chanel | ASV_Summary
+    otu_chanel | OTU_Summary
 
-    // AssignTaxa from SilvaDB
-    asv_otu_tax_common_ch = SequenceAssign(asv_otu_common_ch)
+    // Validate
+    if (params.export_to_s3) {
+        otu_chanel.map { label, table_qza, repSeq_qza, metadata -> tuple(table_qza, "OTU") } | OTU_S3_Table
+        otu_chanel.map { label, table_qza, repSeq_qza, metadata -> tuple(repSeq_qza, "OTU") } | OTU_S3_RepSeq
+        asv_chanel.map { label, table_qza, repSeq_qza, metadata -> tuple(table_qza, "ASV") } | ASV_S3_Table
+        asv_chanel.map { label, table_qza, repSeq_qza, metadata -> tuple(repSeq_qza, "ASV") } | ASV_S3_RepSeq
+        asv_chanel.map { label, table_qza, repSeq_qza, metadata -> tuple(file(metadata), ".") } | Qiime2_S3_Metadata
 
-    // Export Data
-    ExportData(asv_otu_tax_common_ch)
+        Channel.fromPath(params.qiime2_silva_trained_classfier).map { silva_classifier_qza -> tuple(silva_classifier_qza, "MicrobialData_DBs") } | Silva_S3_Classifier
+        Channel.fromPath(params.qiime2_silva_dna_seq).map { silva_seq_qza -> tuple(silva_seq_qza, "MicrobialData_DBs") } | Silva_S3_Seq
+        Channel.fromPath(params.qiime2_silva_taxa).map { silva_taxa_tsv -> tuple(silva_taxa_tsv, "MicrobialData_DBs") } | Silva_S3_Taxanomy
+    }
 
-    // Compute Phylogeny
-    Phylogeny(asv_otu_tax_common_ch)
+    if (params.perform_downstream_steps) {
+        // AssignTaxa from SilvaDB
+        asv_taxa_ch = asv_chanel | ASV_AssignTaxa
+        otu_taxa_ch = otu_chanel | OTU_AssignTaxa
+
+        // Export Data
+        asv_taxa_ch | ASV_Export
+        otu_taxa_ch | OTU_Export
+
+        // Compute Phylogeny
+        asv_taxa_ch | ASV_Phylogeny
+        otu_taxa_ch | OTU_Phylogeny
+    }
 }

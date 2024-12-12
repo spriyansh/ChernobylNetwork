@@ -1,6 +1,4 @@
 // Call Workflows 
-include { VisualSummary as ASV_Summary } from './../../modules/sub_workflows/visual_summary_subflow.nf'
-include { VisualSummary as OTU_Summary} from './../../modules/sub_workflows/visual_summary_subflow.nf'
 include { SequenceAssign as ASV_AssignTaxa} from './../../modules/sub_workflows/assign_silva_taxa_subflow.nf'
 include { SequenceAssign as OTU_AssignTaxa} from './../../modules/sub_workflows/assign_silva_taxa_subflow.nf'
 include { ExportData as ASV_Export} from './../../modules/sub_workflows/export_tables_subflow.nf'
@@ -34,10 +32,6 @@ workflow {
         .combine(table_otu)
         .combine(repseq_otu)
         .combine(metadata)
-
-    // Generate Visual Summaries
-    asv_chanel | ASV_Summary
-    otu_chanel | OTU_Summary
 
     // AssignTaxa from SilvaDB
     asv_taxa_ch = asv_chanel | ASV_AssignTaxa
