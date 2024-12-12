@@ -68,7 +68,7 @@ process DADA2Denoise {
 
     script:
     """
-    qiime dada2 denoise-paired --i-demultiplexed-seqs ${demux_qza} --p-trunc-len-f ${params.trunc_length_f} --p-trunc-len-r ${params.trunc_length_r} --p-trim-left-f ${params.trim_length_f} --p-trim-left-r ${params.trim_length_r} --p-max-ee-f ${params.max_ee_f} --p-max-ee-r ${params.max_ee_r} --o-table dada2-table.qza --o-representative-sequences dada2-rep-seqs.qza --o-denoising-stats dada2-denoising-stats.qza
+    qiime dada2 denoise-paired --i-demultiplexed-seqs ${demux_qza} --p-trim-left-f 10 --p-trim-left-r 10 --p-max-ee-f 2 --p-max-ee-r 2 --p-trunc-len-f ${params.trunc_length_f} --p-trunc-len-r ${params.trunc_length_r} --o-table dada2-table.qza --o-representative-sequences dada2-rep-seqs.qza --o-denoising-stats dada2-denoising-stats.qza
     """
 }
 
