@@ -18,6 +18,9 @@ aws s3 cp s3://chernobyl-soil-memory-optim/MicrobialData_DBs/silva-138-99-515-80
 aws s3 cp s3://chernobyl-soil-memory-optim/MicrobialData_DBs/silva-138-99-seqs-515-806.qza /home/ec2-user/s3/MicrobialData_DBs/.
 aws s3 cp s3://chernobyl-soil-memory-optim/MicrobialData_DBs/taxonomy.tsv /home/ec2-user/s3/MicrobialData_DBs/.
 
+# Install Qiime2
+conda env create -n qiime2 --file https://data.qiime2.org/distro/amplicon/qiime2-amplicon-2024.10-py310-linux-conda.yml
+
 # Clone
 git clone https://github.com/spriyansh/ChernobylNetwork.git
 
