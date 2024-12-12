@@ -9,15 +9,15 @@ include { Phylogeny as OTU_Phylogeny } from './../../modules/sub_workflows/compu
 workflow {
 
     // Metadata
-    metadata = Channel.fromPath("${params.bucket}/Qiime2MetadataInput.tsv")
+    metadata = Channel.fromPath("${params.s3_data}/Qiime2MetadataInput.tsv")
 
     // ASVs
-    table_asv = Channel.fromPath("${params.bucket}/ASV/dada2-table.qza")
-    repseq_asv = Channel.fromPath("${params.bucket}/ASV/dada2-rep-seqs.qza")
+    table_asv = Channel.fromPath("${params.s3_data}/ASV/dada2-table.qza")
+    repseq_asv = Channel.fromPath("${params.s3_data}/ASV/dada2-rep-seqs.qza")
 
     // OTUs
-    table_otu = Channel.fromPath("${params.bucket}/OTU/vcluster-open-ref-table.qza")
-    repseq_otu = Channel.fromPath("${params.bucket}/OTU/vcluster-open-ref-rep-seqs.qza")
+    table_otu = Channel.fromPath("${params.s3_data}/OTU/vcluster-open-ref-table.qza")
+    repseq_otu = Channel.fromPath("${params.s3_data}/OTU/vcluster-open-ref-rep-seqs.qza")
 
     // Combine to make channels
     // ASVs
