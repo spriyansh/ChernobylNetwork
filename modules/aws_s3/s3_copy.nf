@@ -15,9 +15,9 @@ process CopyLocalToS3Bucket {
     script:
     """
     if [ "${prefix}" == "." ]; then
-        aws s3 cp ${filename} s3://${params.bucket}/ --profile ${params.profile} --debug > ${filename}.aws.s3.copy.log.txt
+        aws s3 cp ${filename} ${params.bucket}/ --profile ${params.profile} --debug > ${filename}.aws.s3.copy.log.txt
     else
-        aws s3 cp ${filename} s3://${params.bucket}/${prefix}/ --profile ${params.profile} --debug > ${filename}.aws.s3.copy.log.txt
+        aws s3 cp ${filename} ${params.bucket}/${prefix}/ --profile ${params.profile} --debug > ${filename}.aws.s3.copy.log.txt
     fi
     """
 }
