@@ -40,4 +40,12 @@ workflow {
     // AssignTaxa from SilvaDB
     asv_taxa_ch = asv_chanel | ASV_AssignTaxa
     otu_taxa_ch = otu_chanel | OTU_AssignTaxa
+
+    // Export Data
+    asv_taxa_ch | ASV_Export
+    otu_taxa_ch | OTU_Export
+
+    // Compute Phylogeny
+    asv_taxa_ch | ASV_Phylogeny
+    otu_taxa_ch | OTU_Phylogeny
 }
