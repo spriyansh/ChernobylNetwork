@@ -16,3 +16,14 @@ aws s3 cp s3://chernobyl-soil-memory-optim/Qiime2MetadataInput.tsv /home/ec2-use
 aws s3 cp s3://chernobyl-soil-memory-optim/MicrobialData_DBs/silva-138-99-515-806-classifier.qza /home/ec2-user/s3/
 aws s3 cp s3://chernobyl-soil-memory-optim/MicrobialData_DBs/silva-138-99-seqs-515-806.qza /home/ec2-user/s3/
 aws s3 cp s3://chernobyl-soil-memory-optim/MicrobialData_DBs/taxonomy.tsv /home/ec2-user/s3
+
+# Clone
+git clone https://github.com/spriyansh/ChernobylNetwork.git
+
+# Pull 
+cd ChernobylNetwork
+git checkout aws-split-run
+git pull
+
+# Move to work dir
+cd aws/nf-flow-memory-run
